@@ -256,9 +256,7 @@ if __name__ == "__main__":
                 time.sleep(10)  # Publish every 10 seconds
 
     except KeyboardInterrupt:
-        log.info(
-            "\nKeyboard interrupt received! Program terminating abruptly..."
-        )
+        log.info("Keyboard interrupt received! Program terminating abruptly...")
         # Don't handle the exception - let it terminate abruptly
         # This should trigger the last will message
         import sys
