@@ -214,11 +214,11 @@ class RenogyChargeControllerMQTTClient:
             ),
         }
 
-    def publish_status(self) -> None:
+    def publish_data(self) -> None:
         """Publish the current status of the charge controller."""
         payload = self.charge_controller_status()
         try:
-            self.publish(payload, "status")
+            self.publish(payload, "data")
             log.info(f"Published status: {payload}")
         except Exception as e:
             log.error(f"Error publishing status: {e}")
@@ -247,9 +247,9 @@ if __name__ == "__main__":
             import time
 
             while True:
-                mqtt_client.publish_status()
+                mqtt_client.publish_data()
                 log.info(
-                    "Published status. Press Ctrl+C to trigger last will..."
+                    "Published data. Press Ctrl+C to trigger last will..."
                 )
                 time.sleep(10)  # Publish every 10 seconds
 
