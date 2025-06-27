@@ -12,7 +12,10 @@ from mqtt import RenogyChargeControllerMQTTClient
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
+    format=(
+        "%(asctime)s - %(levelname)s - %(module)s.py:%(lineno)d - %(message)s"
+    ),
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 log = logging.getLogger(__name__)
 
@@ -51,7 +54,7 @@ def main(
 
             # Set the publish frequency
             schedule.every(publish_frequency).seconds.do(
-                mqtt_client.publish_status
+                mqtt_client.publish_data
             )
 
             log.info(
