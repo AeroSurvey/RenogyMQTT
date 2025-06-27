@@ -168,7 +168,7 @@ class RenogyChargeControllerMQTTClient:
         """Disconnect from the MQTT broker."""
         self.client.loop_stop()
         payload = {"status": "offline", "name": self.name}
-        topic = f"{self.base_topic}/status"
+        topic = "status"
         self.publish(payload, topic)
         log.info(f"Disconnecting from MQTT broker at {self.broker}:{self.port}")
         self.client.disconnect()
