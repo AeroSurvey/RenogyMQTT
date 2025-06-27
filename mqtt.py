@@ -167,6 +167,10 @@ class RenogyChargeControllerMQTTClient:
     def disconnect(self) -> None:
         """Disconnect from the MQTT broker."""
         self.client.loop_stop()
+        payload = {"status": "offline", "name": self.name}
+        topic = f"{self.base_topic}/status"
+        self.publish(payload, topic)
+        log.info(f"Disconnecting from MQTT broker at {self.broker}:{self.port}")
         self.client.disconnect()
 
     def birth(self) -> None:
@@ -248,9 +252,7 @@ if __name__ == "__main__":
 
             while True:
                 mqtt_client.publish_data()
-                log.info(
-                    "Published data. Press Ctrl+C to trigger last will..."
-                )
+                log.info("Published data. Press Ctrl+C to trigger last will...")
                 time.sleep(10)  # Publish every 10 seconds
 
     except KeyboardInterrupt:
