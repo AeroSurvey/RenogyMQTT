@@ -1,13 +1,12 @@
 #! .venv/bin/python
 """mqtt client for uploading renogy charge controller data to MQTT broker."""
 
+import datetime
 import json
 import logging
-import datetime
 from typing import Any
 
 import paho.mqtt.client as mqtt
-
 from renogymodbus import RenogyChargeController
 
 log = logging.getLogger(__name__)
@@ -43,13 +42,14 @@ class RenogyChargeControllerMQTTClient:
         self._connected: bool = False
         self._setup_callbacks()
         self._set_last_will()
-        self.charge_controller = RenogyChargeController(portname=port_path,slaveaddress=slave_address)
-        
+        self.charge_controller = RenogyChargeController(
+            portname=port_path, slaveaddress=slave_address
+        )
+
         # # wait until MQTT has connected
         # while self.connected != True:
         #     pass
         log.info(f"Initialized MQTT client for {name} at {broker}:{port}")
-        
 
     def __enter__(self) -> "RenogyChargeControllerMQTTClient":
         """Enter the runtime context related to this object."""
@@ -137,7 +137,7 @@ class RenogyChargeControllerMQTTClient:
             log.error(f"Error connecting to MQTT broker: {e}")
             raise
 
-    def publish(self, payload: dict, topic: str = None) -> None:
+    def publish(self, payload: dict, topic: str | None = None) -> None:
         """Publish data to the specified topic.
 
         Args:
@@ -148,7 +148,7 @@ class RenogyChargeControllerMQTTClient:
             log.error("Cannot publish message, not connected to MQTT broker.")
             return
 
-        if topic != None:
+        if topic is not None:
             full_topic = f"{self.base_topic}/{topic}"
         else:
             full_topic = self.base_topic
@@ -181,22 +181,37 @@ class RenogyChargeControllerMQTTClient:
         return self._connected
 
     def charge_controller_status(self) -> dict:
+        """Retrieve the current status of the charge controller."""
         return {
-            "timestamp" : datetime.datetime.now().isoformat(),
-            "solar_voltage" : charge_controller.get_solar_voltage(),
-            "solar_current" : charge_controller.get_solar_current(),
-            "solar_power" : charge_controller.get_solar_power(),
-            "load_voltage" : charge_controller.get_load_voltage(),
-            "load_current" : charge_controller.get_load_current(),
-            "load_power" : charge_controller.get_load_power(),
-            "battery_voltage" : charge_controller.get_battery_voltage(),
-            "battery_state_of_charge" : charge_controller.get_battery_state_of_charge(),
-            "battery_temperature" : charge_controller.get_battery_temperature(),
-            "controller_temperature" : charge_controller.get_controller_temperature(),
-            "maximum_solar_power_today" : charge_controller.get_maximum_solar_power_today(),
-            "minimum_solar_power_today" : charge_controller.get_minimum_solar_power_today(),
-            "maximum_battery_voltage_today" : charge_controller.get_maximum_battery_voltage_today(),
-            "minimum_battery_voltage_today" : charge_controller.get_minimum_battery_voltage_today()
+            "timestamp": datetime.datetime.now().isoformat(),
+            "solar_voltage": self.charge_controller.get_solar_voltage(),
+            "solar_current": self.charge_controller.get_solar_current(),
+            "solar_power": self.charge_controller.get_solar_power(),
+            "load_voltage": self.charge_controller.get_load_voltage(),
+            "load_current": self.charge_controller.get_load_current(),
+            "load_power": self.charge_controller.get_load_power(),
+            "battery_voltage": self.charge_controller.get_battery_voltage(),
+            "battery_state_of_charge": (
+                self.charge_controller.get_battery_state_of_charge()
+            ),
+            "battery_temperature": (
+                self.charge_controller.get_battery_temperature()
+            ),
+            "controller_temperature": (
+                self.charge_controller.get_controller_temperature()
+            ),
+            "maximum_solar_power_today": (
+                self.charge_controller.get_maximum_solar_power_today()
+            ),
+            "minimum_solar_power_today": (
+                self.charge_controller.get_minimum_solar_power_today()
+            ),
+            "maximum_battery_voltage_today": (
+                self.charge_controller.get_maximum_battery_voltage_today()
+            ),
+            "minimum_battery_voltage_today": (
+                self.charge_controller.get_minimum_battery_voltage_today()
+            ),
         }
 
     def publish_status(self) -> None:
@@ -212,34 +227,40 @@ class RenogyChargeControllerMQTTClient:
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(module)s.py:%(lineno)d - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
+        format=(
+            "%(asctime)s - %(levelname)s - "
+            "%(module)s.py:%(lineno)d - %(message)s"
+        ),
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
 
     try:
         with RenogyChargeControllerMQTTClient(
             broker="172.17.204.35", port=1883, name="renogy_mqtt"
         ) as mqtt_client:
-            while mqtt_client.is_connected == False:
+            while not mqtt_client.is_connected:
                 pass
-            # Example payload
-            example_payload = {
-                "timestamp": "2023-01-01T00:00:00Z",
-                "solar_voltage": 12.0,
-                "solar_current": 5.0,
-                "solar_power": 60.0,
-                "load_voltage": 12.0,
-                "load_current": 5.0,
-                "load_power": 60.0,
-                "battery_voltage": 12.0,
-                "battery_state_of_charge": 100,
-                "battery_temperature": 25,
-                "controller_temperature": 30,
-                "maximum_solar_power_today": 100,
-                "minimum_solar_power_today": 50,
-                "maximum_battery_voltage_today": 12.5,
-                "minimum_battery_voltage_today": 11.5,
-            }
-            mqtt_client.publish(example_payload, "data")
+
+            log.info("Connected! Press Ctrl+C to test last will message...")
+
+            # Keep the program running to test keyboard interrupt
+            import time
+
+            while True:
+                mqtt_client.publish_status()
+                log.info(
+                    "Published status. Press Ctrl+C to trigger last will..."
+                )
+                time.sleep(10)  # Publish every 10 seconds
+
+    except KeyboardInterrupt:
+        log.info(
+            "\nKeyboard interrupt received! Program terminating abruptly..."
+        )
+        # Don't handle the exception - let it terminate abruptly
+        # This should trigger the last will message
+        import sys
+
+        sys.exit(1)  # Abrupt exit without clean disconnect
     except Exception as e:
         log.error(f"An error occurred: {e}")
