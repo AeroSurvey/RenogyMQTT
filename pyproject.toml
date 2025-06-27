@@ -1,14 +1,10 @@
 [project]
 name = "renogy-mqtt"
 version = "0.1.0"
-description = "Add your description here"
+description = "Used to upload data from a Renogy solar charge controller to a MQTT broker."
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = [
-    "paho-mqtt>=2.1.0",
- "renogymodbus>=0.0.23",
- "schedule>=1.2.2",
-]
+dependencies = ["paho-mqtt>=2.1.0", "renogymodbus>=0.0.23", "schedule>=1.2.2"]
 
 [tool.ruff]
 line-length = 80
