@@ -1,0 +1,38 @@
+[project]
+name = "renogy-mqtt"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "paho-mqtt>=2.1.0",
+ "renogymodbus>=0.0.23",
+ "schedule>=1.2.2",
+]
+
+[tool.ruff]
+line-length = 80
+
+[tool.ruff.lint]
+select = [
+    "D",   # Docstring issues
+    "E",   # Errors
+    "W",   # Warnings
+    "F",   # Pyflakes issues
+    "C",   # Complexity issues
+    "I",   # Import issues
+    "N",   # Naming issues
+    "T",   # Type issues
+    "S",   # Security issues   
+    "ANN", # Type annotations issues
+]
+
+ignore = [
+    "ANN401", # Any type annotations
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[dependency-groups]
+dev = ["ruff>=0.12.1"]
