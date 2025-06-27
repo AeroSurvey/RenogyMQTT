@@ -48,7 +48,9 @@ def main(
             slave_address=slave_address,
             port_path=port_path,
         ) as mqtt_client:
-            mqtt_client.birth()
+            # wait for the client to connect
+            while not mqtt_client.is_connected:
+                time.sleep(0.1)  # Small delay to prevent busy waiting
 
             log.info("Starting renogy-mqtt application...")
 
@@ -61,8 +63,9 @@ def main(
                 f"Scheduled data collection every {publish_frequency} seconds."
                 "Press Ctrl+C to stop."
             )
-            schedule.run_pending()
-            time.sleep(1)
+            while True:
+                schedule.run_pending()
+                time.sleep(1)
     except Exception as e:
         log.error(f"An error occurred: {e}")
         return
