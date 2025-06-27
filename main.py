@@ -1,3 +1,5 @@
+#! .venv/bin/python
+
 """main entry point for running the renogy-mqtt application."""
 
 import logging
