@@ -21,32 +21,20 @@ def main(port_path: str) -> None:
         slave_address = find_slaveaddress(port_path)
         log.info(f"Found slave address: {slave_address}")
     except Exception as e:
-        log.error(f"Error finding slave address: {e}")
+        log.error(f"An error occurred while finding the slave address: {e}")
+        raise
 
 
-def find_usb_port() -> str:
-    """Find the USB port for the Renogy charge controller.
+if __name__ == "__main__":
+    import argparse
 
-    Uses the `dmesg | grep ttyUSB` command to find the USB port.
+    parser = argparse.ArgumentParser(
+        description="Find the slave address of the Renogy charge controller."
+    )
+    parser.add_argument(
+        "port_path", type=str, help="Path to the serial port for communication"
+    )
+    args = parser.parse_args()
 
-    Returns:
-        str: The path to the USB port.
-    """
-    import subprocess
-
-    try:
-        result = subprocess.run(
-            ["/usr/bin/dmesg", "|", "grep", "ttyUSB"],
-            capture_output=True,
-            text=True,
-            shell=True,
-        )
-        if result.returncode == 0:
-            lines = result.stdout.splitlines()
-            if lines:
-                return lines[0].split()[-1]  # Get the last part of the line
-        log.error("No USB port found for Renogy charge controller.")
-        return ""
-    except Exception as e:
-        log.error(f"Error finding USB port: {e}")
-        return ""
+    port_path = args.port_path
+    main(port_path)
