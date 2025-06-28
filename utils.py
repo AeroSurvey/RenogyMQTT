@@ -1,3 +1,4 @@
+#! .venv/bin/python
 """This script finds the slave address of the Renogy charge controller."""
 
 import logging
