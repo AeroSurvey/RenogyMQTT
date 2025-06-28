@@ -33,7 +33,10 @@ if __name__ == "__main__":
         description="Find the slave address of the Renogy charge controller."
     )
     parser.add_argument(
-        "port_path", type=str, help="Path to the serial port for communication"
+        "--port_path",
+        "-p",
+        type=str,
+        help="Path to the serial port for communication",
     )
     args = parser.parse_args()
 
