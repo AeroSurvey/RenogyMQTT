@@ -25,7 +25,7 @@ def main(
     port: int,
     name: str,
     slave_address: int,
-    port_path: str,
+    device_address: str,
     publish_frequency: int,
 ) -> None:
     """Main function to start the renogy-mqtt application.
@@ -35,7 +35,7 @@ def main(
         port (int): The MQTT broker port.
         name (str): The name of the MQTT client.
         slave_address (int): The slave address for the charge controller.
-        port_path (str): The path to the serial port for communication.
+        device_address (str): The path to the serial port for communication.
         publish_frequency (int): Frequency in seconds to publish data.
     """
     # Initialize MQTT client
@@ -46,7 +46,7 @@ def main(
             port=port,
             name=name,
             slave_address=slave_address,
-            port_path=port_path,
+            device_address=device_address,
         ) as mqtt_client:
             # wait for the client to connect
             while not mqtt_client.is_connected:
@@ -104,7 +104,7 @@ if __name__ == "__main__":
         help="Slave address for the charge controller (default: 1)",
     )
     parser.add_argument(
-        "--port_path",
+        "--device_address",
         type=str,
         required=True,
         help="Path to the serial port for communication",
@@ -120,6 +120,6 @@ if __name__ == "__main__":
         port=parser.parse_args().port,
         name=parser.parse_args().name,
         slave_address=parser.parse_args().slave_address,
-        port_path=parser.parse_args().port_path,
+        device_address=parser.parse_args().device_address,
         publish_frequency=parser.parse_args().publish_frequency,
     )
