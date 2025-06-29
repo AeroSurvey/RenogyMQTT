@@ -21,7 +21,7 @@ class RenogyChargeControllerMQTTClient:
         port: int = 1883,
         name: str = "renogy_mqtt",
         slave_address: int = 1,
-        port_path: str = "/dev/ttyUSB0",
+        device_address: str = "/dev/ttyUSB0",
     ) -> None:
         """Initialize the MQTT client.
 
@@ -31,7 +31,7 @@ class RenogyChargeControllerMQTTClient:
             name (str): The name of the MQTT client. Defaults to "renogy_mqtt".
             slave_address (int): The Modbus slave address of the charge
                 controller. Defaults to 1.
-            port_path (str): The serial port where the charge controller is
+            device_address (str): The serial port where the charge controller is
                 connected. Defaults to "/dev/ttyUSB0".
         """
         self.broker = broker
@@ -43,7 +43,7 @@ class RenogyChargeControllerMQTTClient:
         self._setup_callbacks()
         self._set_last_will()
         self.charge_controller = RenogyChargeController(
-            portname=port_path, slaveaddress=slave_address
+            portname=device_address, slaveaddress=slave_address
         )
 
         # # wait until MQTT has connected
