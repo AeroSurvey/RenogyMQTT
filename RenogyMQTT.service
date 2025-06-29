@@ -1,0 +1,19 @@
+[Unit]
+Description=Renogy MQTT Data Publisher
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/RenogyMQTT
+Environment=PATH=/home/pi/RenogyMQTT/.venv/bin
+ExecStart=/home/pi/RenogyMQTT/.venv/bin/python /home/pi/RenogyMQTT/main.py --broker mqtt.example.com --name renogy-controller --device_address /dev/ttyUSB0 --slave_address 1 --publish_frequency 60
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
