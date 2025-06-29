@@ -34,12 +34,126 @@ move into cloned repo
 cd RenogyMQTT
 ```
 
+sync uv
+```bash
+uv sync
+```
+
+## Finding the USB parameters
+
+Running the `find_USB_parameters.py` script will return a dictionary containing the device address and the modbus slave address.
+
+Make sure the script is executable
+```bash
+chmod +x find_USB_parameters
+```
+
+Run the script
+```bash
+./find_USB_parameters
+```
+
+Example output:
+```bash
+{'device': '/dev/ttyUSB0', 'slave_address': 1}
+```
+
+You can optionally run the script with verbose logging:
+```bash
+./find_USB_parameters -v
+```
+
+## Running the script
+
+The script for uploading the Renogy charge controller data to MQTT is `main.py`.
+
 make `main.py` executable
 ```bash
 chmod +x main.py
 ```
 
-sync uv
+### script arguments
+
+Using `main.py` requires several arguments to passed in.
+
+#### broker
+
+The MQTT broker address (hostname or IP address) where the data will be published.
+
+Example: `--broker mqtt.example.com` or `--broker 192.168.1.100`
+
+#### port
+
+The MQTT broker port number. Defaults to 1883 if not specified.
+
+Example: `--port 1883`
+
+#### name
+
+The name identifier for the MQTT client. This should be unique for each client connecting to the broker.
+
+Example: `--name renogy-solar-controller`
+
+#### slave address
+
+The Modbus slave address for the charge controller. This can be found using the `find_USB_parameters.py` script. Defaults to 1 if not specified.
+
+Example: `--slave_address 1`
+
+#### device address
+
+The path to the serial port for communication with the charge controller. This can be found using the `find_USB_parameters.py` script.
+
+Example: `--device_address /dev/ttyUSB0`
+
+#### publish frequency
+
+The frequency in seconds at which data will be published to the MQTT broker. Defaults to 60 seconds if not specified.
+
+Example: `--publish_frequency 30`
+
+#### Complete example
+
 ```bash
-uv sync
+./main.py --broker mqtt.example.com --port 1883 --name renogy-controller --slave_address 1 --device_address /dev/ttyUSB0 --publish_frequency 60
+```
+
+## Setup systemd service
+
+`RenogyMQTT.service` is an example of a systemd unit file for running this script as a service
+
+Copy the service file to systemd directory:
+
+```bash
+sudo cp RenogyMQTT.service /etc/systemd/system/
+```
+
+Edit the service file with your specific parameters:
+```bash
+sudo nano /etc/systemd/system/RenogyMQTT.service
+```
+
+Reload systemd
+```bash
+sudo systemctl daemon-reload
+```
+
+Enable the servie
+```bash
+sudo systemctl enable RenogyMQTT.service
+```
+
+Start the service
+```bash
+sudo systemctl start RenogyMQTT.service
+```
+
+Check the service status
+```bash
+sudo systemctl status RenogyMQTT.service
+```
+
+View logs
+```bash
+sudo journalctl -u RenogyMQTT.service -f
 ```
