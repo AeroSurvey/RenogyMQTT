@@ -2,6 +2,10 @@
 
 Used to upload data from a Renogy solar charge controller to a MQTT broker.
 
+Utilizes the [renogymodbus](https://github.com/rosswarren/renogymodbus) library to retrieve data from the charge controller.
+
+Tested with the Renogy Wanderer Li 30A PWM Charge Controller using a Raspberry Pi 3B+ and a [SRNE ML2430 Solar Charger Cable MPPT Solar Charger Controller USB RS232 Serial 6P6C Converter Adapter Cable](https://www.amazon.com/dp/B07JGRJR4V)
+
 ## Raspberry Pi Setup
 
 update and upgrade
