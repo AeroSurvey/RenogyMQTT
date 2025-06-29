@@ -37,4 +37,6 @@ ignore = [
 convention = "google"
 
 [dependency-groups]
-dev = ["ruff>=0.12.1"]
+dev = [
+    "ruff>=0.12.1",
+]
