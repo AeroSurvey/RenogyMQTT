@@ -31,7 +31,7 @@ def find_slave_address(portname: str, verbose: bool = False) -> int:
 
     registers_to_try = [(0x1402, 8), (0x000C, 16), (0x00C, 8)]
 
-    for address in range(0x01, 0xFF):
+    for address in range(0x00, 0xFF):
         if verbose:
             logging.info(f"Testing slave address: {address}")
         instrument.address = address
