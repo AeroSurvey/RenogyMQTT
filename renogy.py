@@ -137,3 +137,27 @@ class RenogyChargeController(RCC):
                 self.get_minimum_battery_voltage_today()
             ),
         }
+
+
+# Example usage in __main__:
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="")
+    dev_wall_controller = RenogyChargeController()
+    log.info(f"Model: {dev_wall_controller.get_model()}")
+    log.info(f"Software Version: {dev_wall_controller.get_software_version()}")
+    log.info(f"Hardware Version: {dev_wall_controller.get_hardware_version()}")
+    log.info(f"Serial Number: {dev_wall_controller.get_serial_number()}")
+    log.info(
+        f"Controller Voltage Rating: "
+        f"{dev_wall_controller.get_controller_voltage_rating()}"
+    )
+    log.info(
+        f"Controller Current Rating: "
+        f"{dev_wall_controller.get_controller_current_rating()}"
+    )
+    log.info(
+        f"Controller Discharge Rating: "
+        f"{dev_wall_controller.get_controller_discharge_rating()}"
+    )
+    log.info(f"Controller Type: {dev_wall_controller.get_controller_type()}")
+    log.info(f"Controller Data: {dev_wall_controller.get_data()}")
