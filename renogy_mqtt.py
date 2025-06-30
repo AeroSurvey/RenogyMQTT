@@ -103,4 +103,4 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
 
 if __name__ == "__main__":
     dev_wall_controller = RenogyChargeController()
-    print(f"Model: {dev_wall_controller.get_model()}")
+    print(dev_wall_controller.get_model())
