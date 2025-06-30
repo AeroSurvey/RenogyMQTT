@@ -5,6 +5,39 @@ import logging
 
 import minimalmodbus
 
+log = logging.getLogger(__name__)
+
+
+def _setup_instrument(portname: str) -> minimalmodbus.Instrument:
+    instrument = minimalmodbus.Instrument(portname, slaveaddress=247)
+    if instrument.serial is None:
+        log.error(f"Failed to open serial port: {portname}")
+        raise ValueError(
+            f"Failed to open serial port: {portname}. "
+            "Please check the connection."
+        )
+    instrument.serial.baudrate = 9600
+    instrument.serial.timeout = 0.1
+    return instrument
+
+
+def _scan_addresses(
+    instrument: minimalmodbus.Instrument, registers_to_try: list, verbose: bool
+) -> list:
+    addresses = []
+    for address in range(0x01, 0xFF):
+        if verbose:
+            logging.info(f"Testing slave address: {address}")
+        instrument.address = address
+        for register, length in registers_to_try:
+            try:
+                if _try_read_register(instrument, register, length):
+                    addresses.append(address)
+                    break  # Found one, move to next address
+            except (minimalmodbus.ModbusException, UnicodeDecodeError):
+                continue
+    return addresses
+
 
 def find_slave_address(portname: str, verbose: bool = False) -> int:
     """Find the slave addresses for a Modbus device.
@@ -23,27 +56,11 @@ def find_slave_address(portname: str, verbose: bool = False) -> int:
     if verbose:
         logging.info(f"Searching for slave address on port: {portname}")
 
-    instrument = minimalmodbus.Instrument(portname, slaveaddress=247)
-    instrument.serial.baudrate = 9600
-    instrument.serial.timeout = 0.1
+    instrument = _setup_instrument(portname)
+    registers_to_try = [(0x1402, 8), (0x000C, 16)]
+    addresses = _scan_addresses(instrument, registers_to_try, verbose)
 
-    addresses = []
-
-    registers_to_try = [(0x1402, 8), (0x000C, 16), (0x00C, 8)]
-
-    for address in range(0x00, 0xFF):
-        if verbose:
-            logging.info(f"Testing slave address: {address}")
-        instrument.address = address
-        for register, length in registers_to_try:
-            try:
-                if _try_read_register(instrument, register, length):
-                    addresses.append(address)
-                    break  # Found one, move to next address
-            except (minimalmodbus.ModbusException, UnicodeDecodeError):
-                continue
-
-    if len(addresses) == 0:
+    if not addresses:
         raise ValueError(
             "No slave addresses found. Please check the connection."
         )
