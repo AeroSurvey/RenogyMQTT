@@ -1,57 +1,69 @@
 #! .venv/bin/python
 """mqtt client for uploading renogy charge controller data to MQTT broker."""
 
-import datetime
 import json
 import logging
+from abc import ABC, abstractmethod
 from typing import Any
 
 import paho.mqtt.client as mqtt
-from renogymodbus import RenogyChargeController
 
 log = logging.getLogger(__name__)
 
 
-class RenogyChargeControllerMQTTClient:
-    """A simple MQTT client for publishing Renogy data."""
+class MQTTClient(ABC):
+    """A simple MQTT client base class."""
 
     def __init__(
         self,
         broker: str,
         port: int = 1883,
-        name: str = "renogy_mqtt",
-        slave_address: int = 1,
-        device_address: str = "/dev/ttyUSB0",
+        name: str = "mqtt_client",
+        base_topic: str = "python",
+        keepalive: int = 60,
     ) -> None:
         """Initialize the MQTT client.
 
         Args:
             broker (str): The MQTT broker address.
             port (int): The MQTT broker port. Defaults to 1883.
-            name (str): The name of the MQTT client. Defaults to "renogy_mqtt".
-            slave_address (int): The Modbus slave address of the charge
-                controller. Defaults to 1.
-            device_address (str): The serial port where the charge controller is
-                connected. Defaults to "/dev/ttyUSB0".
+            name (str): The name of the MQTT client. Defaults to "mqtt_client".
+            base_topic (str): The base topic for publishing data.
+                Defaults to "python".
+            keepalive (int): Keepalive interval in seconds. Defaults to 60.
+                Lower values make last will trigger faster but increase
+                network traffic.
         """
         self.broker = broker
         self.port = port
-        self.base_topic = f"solar/charge_controller/{name}"
+        self.base_topic = base_topic
         self.name = name
+        self.keepalive = keepalive
+        self.topic = f"{self.base_topic}/{self.name}"
+        self.status_topic = f"{self.base_topic}/status"
         self.client = mqtt.Client()
         self._connected: bool = False
         self._setup_callbacks()
         self._set_last_will()
-        self.charge_controller = RenogyChargeController(
-            portname=device_address, slaveaddress=slave_address
-        )
 
-        # # wait until MQTT has connected
-        # while self.connected != True:
-        #     pass
         log.info(f"Initialized MQTT client for {name} at {broker}:{port}")
 
-    def __enter__(self) -> "RenogyChargeControllerMQTTClient":
+    @abstractmethod
+    def status_message(self, status: bool) -> dict:
+        """Abstract method to get the status message.
+
+        Used when publishing birth, last will, and disconnect messages.
+
+        Args:
+            status (bool): The status of the client
+                (True for online, False for offline).
+
+        Returns:
+            dict: The status message to be published.
+        """
+        pass
+
+    def __enter__(self) -> "MQTTClient":
         """Enter the runtime context related to this object."""
         self.connect()
         return self
@@ -118,9 +130,10 @@ class RenogyChargeControllerMQTTClient:
 
     def _set_last_will(self) -> None:
         """Set the last will message for the MQTT client."""
-        payload = {"status": "offline", "name": self.name}
-        topic = f"{self.base_topic}/status"
-        self.client.will_set(topic, json.dumps(payload), qos=1, retain=True)
+        payload = self.status_message(False)
+        self.client.will_set(
+            self.status_topic, json.dumps(payload), qos=1, retain=True
+        )
 
     def connect(self) -> None:
         """Connect to the MQTT broker."""
@@ -129,15 +142,60 @@ class RenogyChargeControllerMQTTClient:
             return
 
         try:
-            self.client.connect(
-                self.broker, self.port, 60
-            )  # 60 second keepalive
-            self.client.loop_start()  # Start the network loop
+            self.client.connect(self.broker, self.port, self.keepalive)
+            self.client.loop_start()
         except Exception as e:
             log.error(f"Error connecting to MQTT broker: {e}")
             raise
 
-    def publish(self, payload: dict, topic: str | None = None) -> None:
+    def publish_status(self, status: bool) -> None:
+        """Publish the status message to the MQTT broker.
+
+        Args:
+            status (bool): The status of the client
+                (True for online, False for offline).
+        """
+        payload = self.status_message(status)
+        # Use the status topic directly without going through publish()
+        try:
+            result = self.client.publish(
+                self.status_topic, json.dumps(payload), retain=True
+            )
+            if result.rc != mqtt.MQTT_ERR_SUCCESS:
+                log.error(f"Failed to publish status. Return code: {result.rc}")
+            else:
+                log.info(f"Published status to {self.status_topic}: {payload}")
+        except Exception as e:
+            log.error(f"Error publishing status: {e}")
+
+    def publish_json(self, payload: dict, topic: str) -> None:
+        """Publish JSON data to the specified topic.
+
+        Args:
+            payload (dict): The JSON data to publish.
+            topic (str): The MQTT topic to publish to.
+
+        Raises:
+            TypeError: If the payload is not serializable to JSON.
+            json.JSONDecodeError: If the payload cannot be decoded as JSON.
+            Exception: For any other errors during publishing.
+        """
+        try:
+            self.publish(payload=json.dumps(payload), topic=topic)
+
+        except TypeError as e:
+            log.error(f"TypeError while publishing JSON data: {e}")
+            raise
+
+        except json.JSONDecodeError as e:
+            log.error(f"JSONDecodeError while publishing JSON data: {e}")
+            raise
+
+        except Exception as e:
+            log.error(f"Error publishing JSON data: {e}")
+            raise
+
+    def publish(self, payload: str, topic: str) -> None:
         """Publish data to the specified topic.
 
         Args:
@@ -148,84 +206,33 @@ class RenogyChargeControllerMQTTClient:
             log.error("Cannot publish message, not connected to MQTT broker.")
             return
 
-        if topic is not None:
-            full_topic = f"{self.base_topic}/{topic}"
-        else:
-            full_topic = self.base_topic
+        full_topic = f"{self.base_topic}/{topic}"
 
         try:
-            result = self.client.publish(full_topic, json.dumps(payload))
+            result = self.client.publish(full_topic, payload)
             if result.rc != mqtt.MQTT_ERR_SUCCESS:
                 log.error(
                     f"Failed to publish message. Return code: {result.rc}"
                 )
             else:
-                log.info(f"Published message to {topic}: {payload}")
+                log.info(f"Published message to {full_topic}: {payload}")
         except Exception as e:
             log.error(f"Error publishing message: {e}")
 
     def disconnect(self) -> None:
         """Disconnect from the MQTT broker."""
         self.client.loop_stop()
-        payload = {"status": "offline", "name": self.name}
-        topic = "status"
-        self.publish(payload, topic)
         log.info(f"Disconnecting from MQTT broker at {self.broker}:{self.port}")
         self.client.disconnect()
 
     def birth(self) -> None:
         """Send a birth message to the MQTT broker."""
-        payload = {"status": "online", "name": self.name}
-        topic = "status"
-        self.publish(payload, topic)
+        self.publish_status(True)
 
     @property
     def is_connected(self) -> bool:
         """Check if the client is connected to the MQTT broker."""
         return self._connected
-
-    def charge_controller_status(self) -> dict:
-        """Retrieve the current status of the charge controller."""
-        return {
-            "timestamp": datetime.datetime.now().isoformat(),
-            "solar_voltage": self.charge_controller.get_solar_voltage(),
-            "solar_current": self.charge_controller.get_solar_current(),
-            "solar_power": self.charge_controller.get_solar_power(),
-            "load_voltage": self.charge_controller.get_load_voltage(),
-            "load_current": self.charge_controller.get_load_current(),
-            "load_power": self.charge_controller.get_load_power(),
-            "battery_voltage": self.charge_controller.get_battery_voltage(),
-            "battery_state_of_charge": (
-                self.charge_controller.get_battery_state_of_charge()
-            ),
-            "battery_temperature": (
-                self.charge_controller.get_battery_temperature()
-            ),
-            "controller_temperature": (
-                self.charge_controller.get_controller_temperature()
-            ),
-            "maximum_solar_power_today": (
-                self.charge_controller.get_maximum_solar_power_today()
-            ),
-            "minimum_solar_power_today": (
-                self.charge_controller.get_minimum_solar_power_today()
-            ),
-            "maximum_battery_voltage_today": (
-                self.charge_controller.get_maximum_battery_voltage_today()
-            ),
-            "minimum_battery_voltage_today": (
-                self.charge_controller.get_minimum_battery_voltage_today()
-            ),
-        }
-
-    def publish_data(self) -> None:
-        """Publish the current status of the charge controller."""
-        payload = self.charge_controller_status()
-        try:
-            self.publish(payload, "data")
-            log.info(f"Published status: {payload}")
-        except Exception as e:
-            log.error(f"Error publishing status: {e}")
 
 
 if __name__ == "__main__":
@@ -238,9 +245,45 @@ if __name__ == "__main__":
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
+    class TestMQTTClient(MQTTClient):
+        """A test MQTT client for demonstration purposes."""
+
+        def __init__(
+            self,
+            broker: str,
+            port: int = 1883,
+            name: str = "mqtt_client",
+            keepalive: int = 10,  # Fast last will for testing
+        ) -> None:
+            """Initialize the test MQTT client."""
+            super().__init__(
+                broker=broker,
+                port=port,
+                base_topic=f"dev/{name}",
+                name=name,
+                keepalive=keepalive,
+            )
+
+        def status_message(self, status: bool) -> dict:
+            """Get the status message for the test client.
+
+            Args:
+                status (bool): The status of the client
+                    (True for online, False for offline).
+
+            Returns:
+                dict: The status message to be published.
+            """
+            return {
+                "client": self.name,
+                "status": "online" if status else "offline",
+            }
+
     try:
-        with RenogyChargeControllerMQTTClient(
-            broker="172.17.204.35", port=1883, name="renogy_mqtt"
+        with TestMQTTClient(
+            broker="172.17.204.35",
+            port=1883,
+            name="test_client",
         ) as mqtt_client:
             while not mqtt_client.is_connected:
                 pass
@@ -249,10 +292,18 @@ if __name__ == "__main__":
 
             # Keep the program running to test keyboard interrupt
             import time
+            from datetime import datetime
 
             while True:
-                mqtt_client.publish_data()
-                log.info("Published data. Press Ctrl+C to trigger last will...")
+                test_message = {
+                    "message": "This is a test message",
+                    "timestamp": datetime.now().isoformat(),
+                }
+                mqtt_client.publish_json(test_message, "test")
+                log.info(
+                    "Published test message. "
+                    "Press Ctrl+C to trigger last will..."
+                )
                 time.sleep(10)  # Publish every 10 seconds
 
     except KeyboardInterrupt:
