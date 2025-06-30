@@ -31,10 +31,10 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
             device_address (str): The serial port where the charge controller is
                 connected. Defaults to "/dev/ttyUSB0".
         """
-        super().__init__(broker, port, name)
         self.charge_controller = RenogyChargeController(
             slave_address=slave_address, device_address=device_address
         )
+        super().__init__(broker, port, name)
         self.base_topic = f"solar/{self.name}"
         self.status_topic = f"{self.base_topic}/status"
         self.data_topic = f"{self.base_topic}/data"
