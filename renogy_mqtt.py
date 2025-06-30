@@ -35,8 +35,7 @@ class RenogyChargeController(RCC):
             str: The model of the charge controller.
         """
         # Read registers and convert to bytes, then decode
-        # registers = self.read_registers(0x00C, 8)
-        registers = self.read_registers(0x018, 2)
+        registers = self.read_registers(0x00C, 8)
 
         # Convert list of integers to bytes
         byte_data = bytearray()
