@@ -55,7 +55,11 @@ class RenogyChargeController(RCC):
                     high_byte = (reg >> 8) & 0xFF
                     low_byte = reg & 0xFF
                     byte_data.extend([high_byte, low_byte])
-                return byte_data.decode("utf-16-be").strip("\x00")
+                # Convert bytes to ASCII
+                ascii_chars = []
+                for byte_val in byte_data:
+                    ascii_chars.append(chr(byte_val))
+                return "".join(ascii_chars)
         except Exception as e:
             log.error(f"Error decoding registers: {e}")
             return ""
