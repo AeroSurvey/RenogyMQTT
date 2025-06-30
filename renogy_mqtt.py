@@ -35,7 +35,9 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
         self.charge_controller = RenogyChargeController(
             slave_address=slave_address, device_address=device_address
         )
-        self.status_topic = f"dev/{self.name}/status"
+        self.base_topic = f"solar/{self.name}"
+        self.status_topic = f"{self.base_topic}/status"
+        self.data_topic = f"{self.base_topic}/data"
 
     def status_message(self, status: bool) -> dict:
         """Create a status message for the MQTT topic."""
@@ -58,26 +60,35 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
             "type": (self.charge_controller.get_controller_type(),),
         }
 
+    def publish_data(self) -> None:
+        """Publish data from the charge controller to the MQTT broker."""
+        self.publish_json(self.charge_controller.get_data(), self.data_topic)
 
-# Example usage in __main__:
+
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format="")
-    dev_wall_controller = RenogyChargeController()
-    log.info(f"Model: {dev_wall_controller.get_model()}")
-    log.info(f"Software Version: {dev_wall_controller.get_software_version()}")
-    log.info(f"Hardware Version: {dev_wall_controller.get_hardware_version()}")
-    log.info(f"Serial Number: {dev_wall_controller.get_serial_number()}")
-    log.info(
-        f"Controller Voltage Rating: "
-        f"{dev_wall_controller.get_controller_voltage_rating()}"
+    logging.basicConfig(level=logging.INFO)
+    log.info("Starting Renogy MQTT client...")
+    import time
+
+    # Initialize the MQTT client
+    mqtt_client = RenogyChargeControllerMQTTClient(
+        broker="localhost",  # Replace with your MQTT broker address
+        port=1883,
+        name="renogy_mqtt",
+        slave_address=1,
+        device_address="/dev/ttyUSB0",
     )
-    log.info(
-        f"Controller Current Rating: "
-        f"{dev_wall_controller.get_controller_current_rating()}"
+
+    # Connect to the MQTT broker
+    mqtt_client.connect()
+
+    # Publish status message
+    mqtt_client.publish_json(
+        mqtt_client.status_message(True), mqtt_client.status_topic
     )
-    log.info(
-        f"Controller Discharge Rating: "
-        f"{dev_wall_controller.get_controller_discharge_rating()}"
-    )
-    log.info(f"Controller Type: {dev_wall_controller.get_controller_type()}")
-    log.info(f"Controller Data: {dev_wall_controller.get_data()}")
+
+    # Publish data periodically
+    while True:
+        mqtt_client.publish_data()
+        log.info("Data published to MQTT broker.")
+        time.sleep(10)
