@@ -7,7 +7,7 @@ import time
 
 import schedule
 
-from mqtt import RenogyChargeControllerMQTTClient
+from renogy_mqtt import RenogyChargeControllerMQTTClient
 
 # Configure logging
 logging.basicConfig(
