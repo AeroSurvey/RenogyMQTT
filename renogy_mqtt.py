@@ -34,49 +34,44 @@ class RenogyChargeController(RCC):
         "software_version": (0x014, 2),
         "hardware_version": (0x016, 2),
         "serial_number": (0x018, 2),
+        "voltage_rating": (0x00A, 1),
+        "current_rating": (0x00A, 1),
+        "discharge_rating": (0x00B, 1),
+        "controller_type": (0x00B, 1),
     }
 
-    # Supported decode methods
-    DecodeMethod = Literal["big_endian", "ascii"]
-
-    def _decode_registers(
-        self, registers: list[int], decode_method: DecodeMethod
-    ) -> str:
-        """Decode a list of registers into a string.
+    def _big_endian_decode(self, registers: list[int]) -> str:
+        """Decode a list of registers into a string using big-endian format.
 
         Args:
             registers (list[int]): List of register values to decode.
-            decode_method (DecodeMethod): The method to use for decoding.
 
         Returns:
             str: The decoded string from the registers.
         """
         try:
-            if decode_method == "big_endian":
-                # Convert list of integers to bytes, then decode
-                byte_data = bytearray()
-                for reg in registers:
-                    # Each register is 16 bits, split into 2 bytes (big-endian)
-                    high_byte = (reg >> 8) & 0xFF
-                    low_byte = reg & 0xFF
-                    byte_data.extend([high_byte, low_byte])
-                # Convert bytes to ASCII
-                ascii_chars = []
-                for byte_val in byte_data:
-                    ascii_chars.append(chr(byte_val))
-                return "".join(ascii_chars)
-            elif decode_method == "ascii":
-                return "".join(chr(reg) for reg in registers)
+            # Convert list of integers to bytes, then decode
+            byte_data = bytearray()
+            for reg in registers:
+                # Each register is 16 bits, split into 2 bytes (big-endian)
+                high_byte = (reg >> 8) & 0xFF
+                low_byte = reg & 0xFF
+                byte_data.extend([high_byte, low_byte])
+            # Convert bytes to ASCII
+            ascii_chars = []
+            for byte_val in byte_data:
+                ascii_chars.append(chr(byte_val))
+            return "".join(ascii_chars)
+
         except Exception as e:
             log.error(f"Error decoding registers: {e}")
             return ""
-        return ""
 
     def get_model(self) -> str:
         """Get the model of the charge controller."""
         # Read registers and convert to bytes, then decode
         registers = self.read_registers(*self.registers["model"])
-        return self._decode_registers(registers, "big_endian").strip(" ")
+        return self._big_endian_decode(registers).strip(" ")
 
     def get_software_version(self) -> str:
         """Get the software version of the charge controller."""
@@ -96,6 +91,34 @@ class RenogyChargeController(RCC):
         registers = self.read_registers(*self.registers["serial_number"])
         serial_hex = f"{registers[0]:04x}{registers[1]:04x}"
         return int(serial_hex, 16)
+
+    def get_controller_voltage_rating(self) -> int:
+        """Get the controller voltage rating."""
+        registers = self.read_registers(*self.registers["voltage_rating"])
+        value = registers[0]
+        voltage = (value >> 8) & 0xFF
+        return voltage
+
+    def get_controller_current_rating(self) -> int:
+        """Get the controller current rating."""
+        registers = self.read_registers(*self.registers["current_rating"])
+        value = registers[0]
+        current = value & 0xFF
+        return current
+
+    def get_controller_discharge_rating(self) -> int:
+        """Get the controller discharge current rating."""
+        registers = self.read_registers(*self.registers["discharge_rating"])
+        value = registers[0]
+        discharge = (value >> 8) & 0xFF
+        return discharge
+
+    def get_controller_type(self) -> str:
+        """Get the controller type (from register 0x00B, low byte)."""
+        registers = self.read_registers(*self.registers["controller_type"])
+        value = registers[0]
+        controller_type = value & 0xFF
+        return "Controller" if controller_type == 0 else "Inverter"
 
 
 class RenogyChargeControllerMQTTClient(MQTTClient):
@@ -143,10 +166,24 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
         }
 
 
+# Example usage in __main__:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="")
     dev_wall_controller = RenogyChargeController()
-    log.info(dev_wall_controller.get_model())
-    log.info(dev_wall_controller.get_software_version())
-    log.info(dev_wall_controller.get_hardware_version())
-    log.info(dev_wall_controller.get_serial_number())
+    log.info(f"Model: {dev_wall_controller.get_model()}")
+    log.info(f"Software Version: {dev_wall_controller.get_software_version()}")
+    log.info(f"Hardware Version: {dev_wall_controller.get_hardware_version()}")
+    log.info(f"Serial Number: {dev_wall_controller.get_serial_number()}")
+    log.info(
+        f"Controller Voltage Rating: "
+        f"{dev_wall_controller.get_controller_voltage_rating()}"
+    )
+    log.info(
+        f"Controller Current Rating: "
+        f"{dev_wall_controller.get_controller_current_rating()}"
+    )
+    log.info(
+        f"Controller Discharge Rating: "
+        f"{dev_wall_controller.get_controller_discharge_rating()}"
+    )
+    log.info(f"Controller Type: {dev_wall_controller.get_controller_type()}")
