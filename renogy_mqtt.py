@@ -76,7 +76,7 @@ class RenogyChargeController(RCC):
         # Read registers and convert to bytes, then decode
         registers = self.read_registers(*self.registers["model"])
 
-        return self._decode_registers(registers, "big_endian")
+        return self._decode_registers(registers, "big_endian").strip("\x00")
 
 
 class RenogyChargeControllerMQTTClient(MQTTClient):
