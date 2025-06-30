@@ -31,12 +31,11 @@ select = [
 
 ignore = [
     "ANN401", # Any type annotations
+    "N817",   # Naming convention for module names
 ]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
 [dependency-groups]
-dev = [
-    "ruff>=0.12.1",
-]
+dev = ["ruff>=0.12.1"]
