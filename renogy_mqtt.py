@@ -36,7 +36,7 @@ class RenogyChargeController(RCC):
         """
         # Read registers and convert to bytes, then decode
         # registers = self.read_registers(0x00C, 8)
-        registers = self.read_registers(0x016, 2)
+        registers = self.read_registers(0x018, 2)
 
         # Convert list of integers to bytes
         byte_data = bytearray()
