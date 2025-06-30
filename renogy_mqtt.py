@@ -41,15 +41,19 @@ class RenogyChargeController(RCC):
         byte_data = bytearray()
         for reg in registers:
             # Each register is 16 bits, split into 2 bytes (big-endian)
-            byte_data.extend(reg.to_bytes(2, byteorder="big"))
+            high_byte = (reg >> 8) & 0xFF
+            low_byte = reg & 0xFF
+            byte_data.extend([high_byte, low_byte])
 
-        # Decode and clean up the string
-        try:
-            model = byte_data.decode("utf-16-be").strip("\x00")
-            return model.strip()
-        except UnicodeDecodeError:
-            # Fallback to ASCII if UTF-16 fails
-            return byte_data.decode("ascii", errors="ignore").strip("\x00")
+        # Convert bytes to ASCII, replacing non-printable characters with dots
+        ascii_chars = []
+        for byte_val in byte_data:
+            if 32 <= byte_val <= 126:  # Printable ASCII range
+                ascii_chars.append(chr(byte_val))
+            else:
+                ascii_chars.append(".")
+
+        return "".join(ascii_chars)
 
 
 class RenogyChargeControllerMQTTClient(MQTTClient):
