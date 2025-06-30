@@ -30,7 +30,7 @@ class RenogyChargeController(RCC):
     RegisterMapping = dict[str, tuple[int, int]]
     """Mapping of register names to their addresses and lengths."""
     registers: RegisterMapping = {
-        "model": (0x00C, 8),  # Register address and length
+        "model": (0x00C, 7),  # Register address and length
     }
 
     # Supported decode methods
