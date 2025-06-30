@@ -129,5 +129,6 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="")
     dev_wall_controller = RenogyChargeController()
-    print(dev_wall_controller.get_model())
+    log.info(dev_wall_controller.get_model())
