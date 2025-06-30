@@ -53,7 +53,7 @@ class RenogyChargeController(RCC):
             else:
                 ascii_chars.append(".")
 
-        return "".join(ascii_chars)
+        return "".join(ascii_chars).replace("\x00", "").strip()
 
 
 class RenogyChargeControllerMQTTClient(MQTTClient):
