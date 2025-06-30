@@ -33,11 +33,11 @@ class RenogyChargeController(RCC):
         "model": (0x00C, 8),
         "software_version": (0x014, 2),
         "hardware_version": (0x016, 2),
-        "serial_number": (0x018, 8),
+        "serial_number": (0x018, 2),
     }
 
     # Supported decode methods
-    DecodeMethod = Literal["big_endian"]
+    DecodeMethod = Literal["big_endian", "ascii"]
 
     def _decode_registers(
         self, registers: list[int], decode_method: DecodeMethod
@@ -65,6 +65,8 @@ class RenogyChargeController(RCC):
                 for byte_val in byte_data:
                     ascii_chars.append(chr(byte_val))
                 return "".join(ascii_chars)
+            elif decode_method == "ascii":
+                return "".join(chr(reg) for reg in registers)
         except Exception as e:
             log.error(f"Error decoding registers: {e}")
             return ""
@@ -79,17 +81,17 @@ class RenogyChargeController(RCC):
     def get_software_version(self) -> str:
         """Get the software version of the charge controller."""
         registers = self.read_registers(*self.registers["software_version"])
-        return self._decode_registers(registers, "big_endian").strip(" ")
+        return self._decode_registers(registers, "ascii").strip(" ")
 
     def get_hardware_version(self) -> str:
         """Get the hardware version of the charge controller."""
         registers = self.read_registers(*self.registers["hardware_version"])
-        return self._decode_registers(registers, "big_endian").strip(" ")
+        return self._decode_registers(registers, "ascii").strip(" ")
 
     def get_serial_number(self) -> str:
         """Get the serial number of the charge controller."""
         registers = self.read_registers(*self.registers["serial_number"])
-        return self._decode_registers(registers, "big_endian").strip(" ")
+        return self._decode_registers(registers, "ascii").strip(" ")
 
 
 class RenogyChargeControllerMQTTClient(MQTTClient):
