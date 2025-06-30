@@ -72,9 +72,9 @@ if __name__ == "__main__":
 
     # Initialize the MQTT client
     mqtt_client = RenogyChargeControllerMQTTClient(
-        broker="localhost",  # Replace with your MQTT broker address
+        broker="172.17.204.35",  # Replace with your MQTT broker address
         port=1883,
-        name="renogy_mqtt",
+        name="dev",
         slave_address=1,
         device_address="/dev/ttyUSB0",
     )
