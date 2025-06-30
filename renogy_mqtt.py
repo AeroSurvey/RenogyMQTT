@@ -28,7 +28,7 @@ class RenogyChargeController(RCC):
         super().__init__(portname=device_address, slaveaddress=slave_address)
 
     registers = {
-        "model": (0x00C, 8),  # Register address and length
+        "model": (0x00C, 10),  # Register address and length
     }
 
     # Supported decode methods
