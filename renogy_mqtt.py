@@ -1,5 +1,5 @@
 #! .venv/bin/python
-"""mqtt client for uploading renogy charge controller data to MQTT broker."""
+"""MQTT client for uploading renogy charge controller data to MQTT broker."""
 
 import logging
 
@@ -35,7 +35,8 @@ class RenogyChargeController(RCC):
             str: The model of the charge controller.
         """
         # Read registers and convert to bytes, then decode
-        registers = self.read_registers(0x00C, 8)
+        # registers = self.read_registers(0x00C, 8)
+        registers = self.read_registers(0x016, 2)
 
         # Convert list of integers to bytes
         byte_data = bytearray()
