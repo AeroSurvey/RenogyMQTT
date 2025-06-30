@@ -81,17 +81,21 @@ class RenogyChargeController(RCC):
     def get_software_version(self) -> str:
         """Get the software version of the charge controller."""
         registers = self.read_registers(*self.registers["software_version"])
-        return self._decode_registers(registers, "ascii").strip(" ")
+        # Combine two 16-bit registers into 4 bytes
+        b = registers[0].to_bytes(2, "big") + registers[1].to_bytes(2, "big")
+        return f"V{b[1]}.{b[2]}.{b[3]}"
 
     def get_hardware_version(self) -> str:
         """Get the hardware version of the charge controller."""
         registers = self.read_registers(*self.registers["hardware_version"])
-        return self._decode_registers(registers, "ascii").strip(" ")
+        b = registers[0].to_bytes(2, "big") + registers[1].to_bytes(2, "big")
+        return f"V{b[1]}.{b[2]}.{b[3]}"
 
-    def get_serial_number(self) -> str:
+    def get_serial_number(self) -> int:
         """Get the serial number of the charge controller."""
         registers = self.read_registers(*self.registers["serial_number"])
-        return self._decode_registers(registers, "ascii").strip(" ")
+        serial_hex = f"{registers[0]:04x}{registers[1]:04x}"
+        return int(serial_hex, 16)
 
 
 class RenogyChargeControllerMQTTClient(MQTTClient):
