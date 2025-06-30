@@ -2,6 +2,7 @@
 """MQTT client for uploading renogy charge controller data to MQTT broker."""
 
 import logging
+from typing import Literal
 
 from renogymodbus import RenogyChargeController as RCC
 
@@ -26,6 +27,40 @@ class RenogyChargeController(RCC):
         """
         super().__init__(portname=device_address, slaveaddress=slave_address)
 
+    registers = {
+        "model": (0x00C, 8),  # Register address and length
+    }
+
+    # Supported decode methods
+    DecodeMethod = Literal["big_endian"]
+
+    def _decode_registers(
+        self, registers: list[int], decode_method: DecodeMethod
+    ) -> str:
+        """Decode a list of registers into a string.
+
+        Args:
+            registers (list[int]): List of register values to decode.
+            decode_method (DecodeMethod): The method to use for decoding.
+
+        Returns:
+            str: The decoded string from the registers.
+        """
+        try:
+            if decode_method == "big_endian":
+                # Convert list of integers to bytes, then decode
+                byte_data = bytearray()
+                for reg in registers:
+                    # Each register is 16 bits, split into 2 bytes (big-endian)
+                    high_byte = (reg >> 8) & 0xFF
+                    low_byte = reg & 0xFF
+                    byte_data.extend([high_byte, low_byte])
+                return byte_data.decode("utf-16-be").strip("\x00")
+        except Exception as e:
+            log.error(f"Error decoding registers: {e}")
+            return ""
+        return ""
+
     def get_model(self) -> str:
         """Get the model of the charge controller.
 
@@ -35,25 +70,9 @@ class RenogyChargeController(RCC):
             str: The model of the charge controller.
         """
         # Read registers and convert to bytes, then decode
-        registers = self.read_registers(0x00C, 8)
+        registers = self.read_registers(*self.registers["model"])
 
-        # Convert list of integers to bytes
-        byte_data = bytearray()
-        for reg in registers:
-            # Each register is 16 bits, split into 2 bytes (big-endian)
-            high_byte = (reg >> 8) & 0xFF
-            low_byte = reg & 0xFF
-            byte_data.extend([high_byte, low_byte])
-
-        # Convert bytes to ASCII, replacing non-printable characters with dots
-        ascii_chars = []
-        for byte_val in byte_data:
-            if 32 <= byte_val <= 126:  # Printable ASCII range
-                ascii_chars.append(chr(byte_val))
-            else:
-                ascii_chars.append(".")
-
-        return "".join(ascii_chars).replace("\x00", "").strip()
+        return self._decode_registers(registers, "big_endian")
 
 
 class RenogyChargeControllerMQTTClient(MQTTClient):
