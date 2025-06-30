@@ -134,10 +134,10 @@ class RenogyChargeController(RCC):
             "maximum_solar_power_today": self.get_maximum_solar_power_today(),
             "minimum_solar_power_today": self.get_minimum_solar_power_today(),
             "maximum_battery_voltage_today": (
-                self.get_maximum_battery_voltage_today(),
+                self.get_maximum_battery_voltage_today()
             ),
             "minimum_battery_voltage_today": (
-                self.get_minimum_battery_voltage_today(),
+                self.get_minimum_battery_voltage_today()
             ),
         }
 
