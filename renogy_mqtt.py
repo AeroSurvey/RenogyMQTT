@@ -2,7 +2,6 @@
 """MQTT client for uploading renogy charge controller data to MQTT broker."""
 
 import logging
-from typing import Literal
 
 from renogymodbus import RenogyChargeController as RCC
 
@@ -27,9 +26,8 @@ class RenogyChargeController(RCC):
         """
         super().__init__(portname=device_address, slaveaddress=slave_address)
 
-    RegisterMapping = dict[str, tuple[int, int]]
-    """Mapping of register names to their addresses and lengths."""
-    registers: RegisterMapping = {
+    # Mapping of register names to their addresses and lengths.
+    registers: dict[str, tuple[int, int]] = {
         "model": (0x00C, 8),
         "software_version": (0x014, 2),
         "hardware_version": (0x016, 2),
@@ -120,6 +118,29 @@ class RenogyChargeController(RCC):
         controller_type = value & 0xFF
         return "Controller" if controller_type == 0 else "Inverter"
 
+    def get_data(self) -> dict:
+        """Get all relevant data from the charge controller."""
+        return {
+            "solar_voltage": self.get_controller_voltage_rating(),
+            "solar_current": self.get_controller_current_rating(),
+            "solar_power": self.get_solar_power(),
+            "load_voltage": self.get_load_voltage(),
+            "load_current": self.get_load_current(),
+            "load_power": self.get_load_power(),
+            "battery_voltage": self.get_battery_voltage(),
+            "battery_state_of_charge": self.get_battery_state_of_charge(),
+            "battery_temperature": self.get_battery_temperature(),
+            "controller_temperature": self.get_controller_temperature(),
+            "maximum_solar_power_today": self.get_maximum_solar_power_today(),
+            "minimum_solar_power_today": self.get_minimum_solar_power_today(),
+            "maximum_battery_voltage_today": (
+                self.get_maximum_battery_voltage_today(),
+            ),
+            "minimum_battery_voltage_today": (
+                self.get_minimum_battery_voltage_today(),
+            ),
+        }
+
 
 class RenogyChargeControllerMQTTClient(MQTTClient):
     """A simple MQTT client for publishing Renogy data."""
@@ -192,3 +213,4 @@ if __name__ == "__main__":
         f"{dev_wall_controller.get_controller_discharge_rating()}"
     )
     log.info(f"Controller Type: {dev_wall_controller.get_controller_type()}")
+    log.info(f"Controller Data: {dev_wall_controller.get_data()}")
