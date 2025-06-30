@@ -30,7 +30,10 @@ class RenogyChargeController(RCC):
     RegisterMapping = dict[str, tuple[int, int]]
     """Mapping of register names to their addresses and lengths."""
     registers: RegisterMapping = {
-        "model": (0x00C, 7),  # Register address and length
+        "model": (0x00C, 8),
+        "software_version": (0x014, 2),
+        "hardware_version": (0x016, 2),
+        "serial_number": (0x018, 8),
     }
 
     # Supported decode methods
@@ -68,18 +71,24 @@ class RenogyChargeController(RCC):
         return ""
 
     def get_model(self) -> str:
-        """Get the model of the charge controller.
-
-        Reads the register addresses to get the model string.
-
-        Returns:
-            str: The model of the charge controller.
-        """
+        """Get the model of the charge controller."""
         # Read registers and convert to bytes, then decode
         registers = self.read_registers(*self.registers["model"])
+        return self._decode_registers(registers, "big_endian").strip(" ")
 
-        # Use the _decode_registers method to decode the registers
-        # and strip whitespace from the end of the string
+    def get_software_version(self) -> str:
+        """Get the software version of the charge controller."""
+        registers = self.read_registers(*self.registers["software_version"])
+        return self._decode_registers(registers, "big_endian").strip(" ")
+
+    def get_hardware_version(self) -> str:
+        """Get the hardware version of the charge controller."""
+        registers = self.read_registers(*self.registers["hardware_version"])
+        return self._decode_registers(registers, "big_endian").strip(" ")
+
+    def get_serial_number(self) -> str:
+        """Get the serial number of the charge controller."""
+        registers = self.read_registers(*self.registers["serial_number"])
         return self._decode_registers(registers, "big_endian").strip(" ")
 
 
@@ -132,3 +141,6 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="")
     dev_wall_controller = RenogyChargeController()
     log.info(dev_wall_controller.get_model())
+    log.info(dev_wall_controller.get_software_version())
+    log.info(dev_wall_controller.get_hardware_version())
+    log.info(dev_wall_controller.get_serial_number())
