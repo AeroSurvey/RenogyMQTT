@@ -1,6 +1,7 @@
 """Utility functions for the Renogy MQTT client application."""
 
 import logging
+import time
 from typing import Callable
 
 log = logging.getLogger(__name__)
