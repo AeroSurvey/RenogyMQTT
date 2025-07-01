@@ -118,8 +118,8 @@ class RenogyChargeController(RCC):
     def get_data(self) -> dict:
         """Get all relevant data from the charge controller."""
         return {
-            "solar_voltage": self.get_controller_voltage_rating(),
-            "solar_current": self.get_controller_current_rating(),
+            "solar_voltage": self.get_solar_voltage(),
+            "solar_current": self.get_solar_current(),
             "solar_power": self.get_solar_power(),
             "load_voltage": self.get_load_voltage(),
             "load_current": self.get_load_current(),
