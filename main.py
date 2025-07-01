@@ -104,7 +104,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--publish-frequency",
-        type=int,
+        type=float,
         default=60,
         help="Frequency in seconds to publish data (default: 60)",
     )
