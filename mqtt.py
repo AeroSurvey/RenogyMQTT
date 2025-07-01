@@ -64,7 +64,11 @@ class MQTTClient(ABC):
         pass
 
     def __enter__(self) -> "MQTTClient":
-        """Enter the runtime context related to this object."""
+        """Enter the runtime context related to this object.
+
+        Returns:
+            MQTTClient: The MQTT client instance.
+        """
         self.connect()
         return self
 
