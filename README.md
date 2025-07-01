@@ -49,14 +49,9 @@ uv sync
 
 Running the `find_USB_parameters.py` script will return a dictionary containing the device address and the modbus slave address.
 
-Make sure the script is executable
+Run the script (with verbose logging messages)
 ```bash
-chmod +x find_USB_parameters
-```
-
-Run the script
-```bash
-./find_USB_parameters
+uv run find_USB_parameters -v
 ```
 
 Example output:
@@ -64,19 +59,9 @@ Example output:
 {'device': '/dev/ttyUSB0', 'slave_address': 1}
 ```
 
-You can optionally run the script with verbose logging:
-```bash
-./find_USB_parameters -v
-```
-
 ## Running the script
 
 The script for uploading the Renogy charge controller data to MQTT is `main.py`.
-
-make `main.py` executable
-```bash
-chmod +x main.py
-```
 
 ### script arguments
 
@@ -121,7 +106,7 @@ Example: `--publish_frequency 30`
 #### Complete example
 
 ```bash
-./main.py --broker mqtt.example.com --port 1883 --name renogy-controller --slave_address 1 --device_address /dev/ttyUSB0 --publish_frequency 60
+uv run main.py --broker mqtt.example.com --port 1883 --name renogy-controller --slave_address 1 --device_address /dev/ttyUSB0 --publish_frequency 60
 ```
 
 ## Setup systemd service
