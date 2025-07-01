@@ -43,7 +43,7 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
         """Create a status message for the MQTT topic."""
         return {
             "client": self.name,
-            "status": status,
+            "status": "online" if status else "offline",
             "model": self.charge_controller.get_model(),
             "software_version": self.charge_controller.get_software_version(),
             "hardware_version": self.charge_controller.get_hardware_version(),
