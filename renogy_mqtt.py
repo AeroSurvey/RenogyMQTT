@@ -57,7 +57,7 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
             "discharge_rating": (
                 self.charge_controller.get_controller_discharge_rating()
             ),
-            "type": (self.charge_controller.get_controller_type()),
+            "type": self.charge_controller.get_controller_type(),
         }
 
     def publish_data(self) -> None:
