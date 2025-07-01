@@ -12,7 +12,10 @@ log = logging.getLogger(__name__)
 
 
 class MQTTClient(ABC):
-    """A simple MQTT client base class."""
+    """A simple MQTT client base class.
+
+    Meant to be subclassed for specific data logging use cases.
+    """
 
     def __init__(
         self,
@@ -61,6 +64,11 @@ class MQTTClient(ABC):
         Returns:
             dict: The status message to be published.
         """
+        pass
+
+    @abstractmethod
+    def publish_data(self) -> None:
+        """Publish data to the MQTT broker."""
         pass
 
     def __enter__(self) -> "MQTTClient":
@@ -282,6 +290,15 @@ if __name__ == "__main__":
                 "client": self.name,
                 "status": "online" if status else "offline",
             }
+
+        def publish_data(self) -> None:
+            """Publish data to the MQTT broker.
+
+            This method is not used in this test client but must be implemented.
+            """
+            log.warning(
+                "publish_data() method is not implemented in TestMQTTClient."
+            )
 
     try:
         with TestMQTTClient(
