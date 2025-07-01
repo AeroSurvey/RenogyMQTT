@@ -31,6 +31,7 @@ def call_periodically(function: Callable, interval: float) -> None:
             )
             next_run = time.time()  # Reset next_run to avoid accumulating drift
             sleep_time = 0
+        time.sleep(sleep_time)
 
 
 if __name__ == "__main__":
@@ -46,4 +47,4 @@ if __name__ == "__main__":
         log.info("Function executed.")
 
     # test triggering the error message
-    call_periodically(example_function, 2.14646)
+    call_periodically(example_function, 60)
