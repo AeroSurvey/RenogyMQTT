@@ -5,8 +5,6 @@
 import logging
 import time
 
-import schedule
-
 from renogy_mqtt import RenogyChargeControllerMQTTClient
 
 # Configure logging
@@ -38,8 +36,6 @@ def main(
         device_address (str): The path to the serial port for communication.
         publish_frequency (int): Frequency in seconds to publish data.
     """
-    # Initialize MQTT client
-
     try:
         with RenogyChargeControllerMQTTClient(
             broker=broker,
@@ -54,18 +50,17 @@ def main(
 
             log.info("Starting renogy-mqtt application...")
 
-            # Set the publish frequency
-            schedule.every(publish_frequency).seconds.do(
-                mqtt_client.publish_data
-            )
-
+            next_run = time.time()
             log.info(
-                f"Scheduled data collection every {publish_frequency} seconds. "
+                f"Publishing data every {publish_frequency} seconds. "
                 "Press Ctrl+C to stop."
             )
             while True:
-                schedule.run_pending()
-                time.sleep(1)
+                start = time.time()
+                mqtt_client.publish_data()
+                next_run += publish_frequency
+                sleep_time = max(0, next_run - time.time())
+                time.sleep(sleep_time)
     except Exception as e:
         log.error(f"An error occurred: {e}")
         return
