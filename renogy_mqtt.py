@@ -49,15 +49,15 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
             "hardware_version": self.charge_controller.get_hardware_version(),
             "serial_number": self.charge_controller.get_serial_number(),
             "voltage_rating": (
-                self.charge_controller.get_controller_voltage_rating(),
+                self.charge_controller.get_controller_voltage_rating()
             ),
             "current_rating": (
-                self.charge_controller.get_controller_current_rating(),
+                self.charge_controller.get_controller_current_rating()
             ),
             "discharge_rating": (
-                self.charge_controller.get_controller_discharge_rating(),
+                self.charge_controller.get_controller_discharge_rating()
             ),
-            "type": (self.charge_controller.get_controller_type(),),
+            "type": (self.charge_controller.get_controller_type()),
         }
 
     def publish_data(self) -> None:
