@@ -6,12 +6,15 @@ from typing import Callable
 log = logging.getLogger(__name__)
 
 
-def call_periodically(function: Callable, interval: int) -> None:
+def call_periodically(function: Callable, interval: float) -> None:
     """Call a function periodically with a specified interval.
+
+    This function will execute the provided function at regular intervals,
+    logging an error if the function execution time exceeds the interval.
 
     Args:
         function (Callable): The function to call periodically.
-        interval (int): The interval in seconds between calls.
+        interval (float): The interval in seconds between calls.
     """
     next_run = time.time()
     while True:
@@ -22,7 +25,7 @@ def call_periodically(function: Callable, interval: int) -> None:
         sleep_time = next_run - time.time()
         if sleep_time < 0:
             log.error(
-                f"Function execution time ({elapsed:.2f}s) "
+                f"Function execution time ({elapsed}s) "
                 f"exceeded interval ({interval}s)."
             )
             next_run = time.time()  # Reset next_run to avoid accumulating drift
@@ -38,8 +41,8 @@ if __name__ == "__main__":
     # Example usage
     def example_function() -> None:
         """An example function to be called periodically."""
-        time.sleep(3)  # Simulate a function that takes time to execute
+        time.sleep(2.16474)  # Simulate a function that takes time to execute
         log.info("Function executed.")
 
     # test triggering the error message
-    call_periodically(example_function, 2)
+    call_periodically(example_function, 2.14646)
