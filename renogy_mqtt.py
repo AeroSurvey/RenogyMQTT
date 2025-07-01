@@ -34,6 +34,22 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
         self.charge_controller = RenogyChargeController(
             slave_address=slave_address, device_address=device_address
         )
+        # retrieve charge controller information
+        self.model = self.charge_controller.get_model()
+        self.software_version = self.charge_controller.get_software_version()
+        self.hardware_version = self.charge_controller.get_hardware_version()
+        self.serial_number = self.charge_controller.get_serial_number()
+        self.voltage_rating = (
+            self.charge_controller.get_controller_voltage_rating()
+        )
+        self.current_rating = (
+            self.charge_controller.get_controller_current_rating()
+        )
+        self.discharge_rating = (
+            self.charge_controller.get_controller_discharge_rating()
+        )
+        self.controller_type = self.charge_controller.get_controller_type()
+
         super().__init__(broker, port, name, base_topic=f"solar/{name}")
         self.status_topic = f"{self.base_topic}/status"
         self.data_topic = f"{self.base_topic}/data"
@@ -43,20 +59,14 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
         return {
             "client": self.name,
             "status": "online" if status else "offline",
-            "model": self.charge_controller.get_model(),
-            "software_version": self.charge_controller.get_software_version(),
-            "hardware_version": self.charge_controller.get_hardware_version(),
-            "serial_number": self.charge_controller.get_serial_number(),
-            "voltage_rating": (
-                self.charge_controller.get_controller_voltage_rating()
-            ),
-            "current_rating": (
-                self.charge_controller.get_controller_current_rating()
-            ),
-            "discharge_rating": (
-                self.charge_controller.get_controller_discharge_rating()
-            ),
-            "type": self.charge_controller.get_controller_type(),
+            "model": self.model,
+            "software_version": self.software_version,
+            "hardware_version": self.hardware_version,
+            "serial_number": self.serial_number,
+            "voltage_rating": self.voltage_rating,
+            "current_rating": self.current_rating,
+            "discharge_rating": self.discharge_rating,
+            "type": self.controller_type,
         }
 
     def publish_data(self) -> None:
