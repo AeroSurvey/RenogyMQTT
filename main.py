@@ -98,19 +98,19 @@ if __name__ == "__main__":
         help="Name of the MQTT client",
     )
     parser.add_argument(
-        "--slave_address",
+        "--slave-address",
         type=int,
         default=1,
         help="Slave address for the charge controller (default: 1)",
     )
     parser.add_argument(
-        "--device_address",
+        "--device-address",
         type=str,
         required=True,
         help="Path to the serial port for communication",
     )
     parser.add_argument(
-        "--publish_frequency",
+        "--publish-frequency",
         type=int,
         default=60,
         help="Frequency in seconds to publish data (default: 60)",
