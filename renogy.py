@@ -3,6 +3,7 @@
 import logging
 from datetime import datetime
 
+import tzlocal
 from renogymodbus import RenogyChargeController as RCC
 
 log = logging.getLogger(__name__)
@@ -119,7 +120,7 @@ class RenogyChargeController(RCC):
     def get_data(self) -> dict:
         """Get all relevant data from the charge controller."""
         return {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(tzlocal.get_localzone()).isoformat(),
             "solar_voltage": self.get_solar_voltage(),
             "solar_current": self.get_solar_current(),
             "solar_power": self.get_solar_power(),
