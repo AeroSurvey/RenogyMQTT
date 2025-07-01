@@ -82,13 +82,12 @@ if __name__ == "__main__":
     # Connect to the MQTT broker
     mqtt_client.connect()
 
-    # Publish status message
-    mqtt_client.publish_json(
-        mqtt_client.status_message(True), mqtt_client.status_topic
-    )
-
     # Publish data periodically
     while True:
-        mqtt_client.publish_data()
-        log.info("Data published to MQTT broker.")
-        time.sleep(10)
+        try:
+            mqtt_client.publish_data()
+            log.info("Data published to MQTT broker.")
+        except Exception as e:
+            log.error(f"Error publishing data: {e}")
+        finally:
+            time.sleep(10)
