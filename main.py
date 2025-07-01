@@ -56,7 +56,6 @@ def main(
                 "Press Ctrl+C to stop."
             )
             while True:
-                start = time.time()
                 mqtt_client.publish_data()
                 next_run += publish_frequency
                 sleep_time = max(0, next_run - time.time())
