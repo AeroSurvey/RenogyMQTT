@@ -34,8 +34,7 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
         self.charge_controller = RenogyChargeController(
             slave_address=slave_address, device_address=device_address
         )
-        super().__init__(broker, port, name)
-        self.base_topic = f"solar/{self.name}"
+        super().__init__(broker, port, name, base_topic=f"solar/{name}")
         self.status_topic = f"{self.base_topic}/status"
         self.data_topic = f"{self.base_topic}/data"
 
