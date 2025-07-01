@@ -129,7 +129,7 @@ Reload systemd
 sudo systemctl daemon-reload
 ```
 
-Enable the servie
+Enable the service
 ```bash
 sudo systemctl enable RenogyMQTT.service
 ```
