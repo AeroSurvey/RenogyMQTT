@@ -40,7 +40,7 @@ class MQTTClient(ABC):
         self.name = name
         self.keepalive = keepalive
         self.topic = f"{self.base_topic}/{self.name}"
-        self.status_topic = f"{self.base_topic}/status"
+        self.status_topic = f"{self.topic}/status"
         self.client = mqtt.Client()
         self._connected: bool = False
         self._setup_callbacks()
