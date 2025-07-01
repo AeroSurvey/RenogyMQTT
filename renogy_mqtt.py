@@ -70,7 +70,9 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
 
     def publish_data(self) -> None:
         """Publish data from the charge controller to the MQTT broker."""
-        self.publish_json(self.charge_controller.get_data(), self.data_topic)
+        self.publish_json(
+            self.charge_controller.get_data(), f"{self.name}/{self.data_topic}"
+        )
 
 
 if __name__ == "__main__":
