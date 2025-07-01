@@ -65,60 +65,97 @@ class RenogyChargeController(RCC):
             return ""
 
     def get_model(self) -> str:
-        """Get the model of the charge controller."""
+        """Get the model of the charge controller.
+
+        Returns:
+            str: The model of the charge controller.
+        """
         # Read registers and convert to bytes, then decode
         registers = self.read_registers(*self.registers["model"])
         return self._big_endian_decode(registers).strip(" ")
 
     def get_software_version(self) -> str:
-        """Get the software version of the charge controller."""
+        """Get the software version of the charge controller.
+
+        Returns:
+            str: The software version of the charge controller.
+        """
         registers = self.read_registers(*self.registers["software_version"])
         # Combine two 16-bit registers into 4 bytes
         b = registers[0].to_bytes(2, "big") + registers[1].to_bytes(2, "big")
         return f"V{b[1]}.{b[2]}.{b[3]}"
 
     def get_hardware_version(self) -> str:
-        """Get the hardware version of the charge controller."""
+        """Get the hardware version of the charge controller.
+
+        Returns:
+            str: The hardware version of the charge controller.
+        """
         registers = self.read_registers(*self.registers["hardware_version"])
         b = registers[0].to_bytes(2, "big") + registers[1].to_bytes(2, "big")
         return f"V{b[1]}.{b[2]}.{b[3]}"
 
     def get_serial_number(self) -> int:
-        """Get the serial number of the charge controller."""
+        """Get the serial number of the charge controller.
+
+        Returns:
+            int: The serial number of the charge controller as an integer.
+        """
         registers = self.read_registers(*self.registers["serial_number"])
         serial_hex = f"{registers[0]:04x}{registers[1]:04x}"
         return int(serial_hex, 16)
 
     def get_controller_voltage_rating(self) -> int:
-        """Get the controller voltage rating."""
+        """Get the controller voltage rating.
+
+        Returns:
+            int: The voltage rating of the controller.
+        """
         registers = self.read_registers(*self.registers["voltage_rating"])
         value = registers[0]
         voltage = (value >> 8) & 0xFF
         return voltage
 
     def get_controller_current_rating(self) -> int:
-        """Get the controller current rating."""
+        """Get the controller current rating.
+
+        Returns:
+            int: The current rating of the controller.
+        """
         registers = self.read_registers(*self.registers["current_rating"])
         value = registers[0]
         current = value & 0xFF
         return current
 
     def get_controller_discharge_rating(self) -> int:
-        """Get the controller discharge current rating."""
+        """Get the controller discharge current rating.
+
+        Returns:
+            int: The discharge current rating of the controller.
+        """
         registers = self.read_registers(*self.registers["discharge_rating"])
         value = registers[0]
         discharge = (value >> 8) & 0xFF
         return discharge
 
     def get_controller_type(self) -> str:
-        """Get the controller type (from register 0x00B, low byte)."""
+        """Get the controller type (from register 0x00B, low byte).
+
+        Returns:
+            str: The type of the controller, either "Controller" or "Inverter".
+        """
         registers = self.read_registers(*self.registers["controller_type"])
         value = registers[0]
         controller_type = value & 0xFF
         return "Controller" if controller_type == 0 else "Inverter"
 
     def get_data(self) -> dict:
-        """Get all relevant data from the charge controller."""
+        """Get all relevant data from the charge controller.
+
+        Returns:
+            dict: A dictionary containing all relevant data from the charge
+                controller.
+        """
         return {
             "timestamp": datetime.now(tzlocal.get_localzone()).isoformat(),
             "solar_voltage": self.get_solar_voltage(),
