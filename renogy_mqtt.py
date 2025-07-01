@@ -54,7 +54,15 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
         self.data_topic = "data"
 
     def status_message(self, status: bool) -> dict:
-        """Create a status message for the MQTT topic."""
+        """Create a status message for the MQTT topic.
+
+        Args:
+            status (bool): The connection status of the MQTT client.
+                set to True if connected, False otherwise.
+
+        Returns:
+            dict: A dictionary containing the status message.
+        """
         return {
             "client": self.name,
             "status": "online" if status else "offline",
