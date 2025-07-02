@@ -1,5 +1,5 @@
 #! .venv/bin/python
-"""mqtt client for uploading renogy charge controller data to MQTT broker."""
+"""mqtt client base class for data logging."""
 
 import json
 import logging
