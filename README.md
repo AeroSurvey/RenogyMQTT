@@ -89,24 +89,24 @@ Example: `--name renogy-solar-controller`
 
 The Modbus slave address for the charge controller. This can be found using the `find_USB_parameters.py` script. Defaults to 1 if not specified.
 
-Example: `--slave_address 1`
+Example: `--slave-address 1`
 
 #### device address
 
 The path to the serial port for communication with the charge controller. This can be found using the `find_USB_parameters.py` script.
 
-Example: `--device_address /dev/ttyUSB0`
+Example: `--device-address /dev/ttyUSB0`
 
 #### publish frequency
 
 The frequency in seconds at which data will be published to the MQTT broker. Defaults to 60 seconds if not specified.
 
-Example: `--publish_frequency 30`
+Example: `--publish-frequency 30`
 
 #### Complete example
 
 ```bash
-uv run main.py --broker mqtt.example.com --port 1883 --name renogy-controller --slave_address 1 --device_address /dev/ttyUSB0 --publish_frequency 60
+uv run main.py --broker mqtt.example.com --port 1883 --name renogy-controller --slave-address 1 --device-address /dev/ttyUSB0 --publish-frequency 60
 ```
 
 ## Setup systemd service
