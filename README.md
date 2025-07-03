@@ -51,7 +51,7 @@ Running the `find_USB_parameters.py` script will return a dictionary containing 
 
 Run the script (with verbose logging messages)
 ```bash
-uv run find_USB_parameters -v
+uv run find_USB_parameters.py -v
 ```
 
 Example output:
