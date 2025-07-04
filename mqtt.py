@@ -4,7 +4,7 @@
 import json
 import logging
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Literal
 
 import paho.mqtt.client as mqtt
 
@@ -50,6 +50,8 @@ class MQTTClient(ABC):
         self._set_last_will()
 
         log.info(f"Initialized MQTT client for {name} at {broker}:{port}")
+
+    QoSLevel = Literal[0, 1, 2]
 
     @abstractmethod
     def status_message(self, status: bool) -> dict:
@@ -180,12 +182,18 @@ class MQTTClient(ABC):
         except Exception as e:
             log.error(f"Error publishing status: {e}")
 
-    def publish_json(self, payload: dict, topic: str) -> None:
+    def publish_json(
+        self, payload: dict, topic: str, qos: QoSLevel = 0, retain: bool = False
+    ) -> None:
         """Publish JSON data to the specified topic.
 
         Args:
             payload (dict): The JSON data to publish.
             topic (str): The MQTT topic to publish to.
+            qos (int): Quality of Service level for the message.
+                Defaults to 0 (at most once).
+            retain (bool): Whether to retain the message on the broker.
+                Defaults to False (do not retain).
 
         Raises:
             TypeError: If the payload is not serializable to JSON.
@@ -193,7 +201,9 @@ class MQTTClient(ABC):
             Exception: For any other errors during publishing.
         """
         try:
-            self.publish(payload=json.dumps(payload), topic=topic)
+            self.publish(
+                payload=json.dumps(payload), topic=topic, qos=qos, retain=retain
+            )
 
         except TypeError as e:
             log.error(f"TypeError while publishing JSON data: {e}")
@@ -207,12 +217,18 @@ class MQTTClient(ABC):
             log.error(f"Error publishing JSON data: {e}")
             raise
 
-    def publish(self, payload: str, topic: str) -> None:
+    def publish(
+        self, payload: str, topic: str, qos: QoSLevel = 0, retain: bool = False
+    ) -> None:
         """Publish data to the specified topic.
 
         Args:
             payload (dict): The data to publish.
             topic (str): The MQTT topic to publish to.
+            qos (int): Quality of Service level for the message.
+                Defaults to 0 (at most once).
+            retain (bool): Whether to retain the message on the broker.
+                Defaults to False (do not retain).
         """
         if not self._connected:
             log.error("Cannot publish message, not connected to MQTT broker.")
@@ -221,7 +237,9 @@ class MQTTClient(ABC):
         full_topic = f"{self.base_topic}/{topic}"
 
         try:
-            result = self.client.publish(full_topic, payload)
+            result = self.client.publish(
+                full_topic, payload, qos=qos, retain=retain
+            )
             if result.rc != mqtt.MQTT_ERR_SUCCESS:
                 log.error(
                     f"Failed to publish message. Return code: {result.rc}"
