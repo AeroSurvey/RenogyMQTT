@@ -10,6 +10,8 @@ import paho.mqtt.client as mqtt
 
 log = logging.getLogger(__name__)
 
+QoSLevel = Literal[0, 1, 2]
+
 
 class MQTTClient(ABC):
     """A simple MQTT client base class.
@@ -50,8 +52,6 @@ class MQTTClient(ABC):
         self._set_last_will()
 
         log.info(f"Initialized MQTT client for {name} at {broker}:{port}")
-
-    QoSLevel = Literal[0, 1, 2]
 
     @abstractmethod
     def status_message(self, status: bool) -> dict:
