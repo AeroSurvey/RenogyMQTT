@@ -9,7 +9,7 @@ User=pi
 Group=pi
 WorkingDirectory=/home/pi/RenogyMQTT
 Environment=PATH=/home/pi/RenogyMQTT/.venv/bin
-ExecStart=/home/pi/RenogyMQTT/.venv/bin/python /home/pi/RenogyMQTT/main.py --broker mqtt.example.com --name renogy-controller --device-address /dev/ttyUSB0 --slave-address 1 --publish-frequency 60
+ExecStart=/home/pi/RenogyMQTT/.venv/bin/python /home/pi/RenogyMQTT/main.py --broker mqtt.example.com --name renogy-controller --device-address /dev/ttyUSB0 --slave-address 1 --publish-frequency 60 --qos 1
 Restart=always
 RestartSec=10
 StandardOutput=journal
