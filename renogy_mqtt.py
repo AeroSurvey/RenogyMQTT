@@ -3,7 +3,7 @@
 
 import logging
 
-from mqtt import MQTTClient
+from mqtt import MQTTClient, QoSLevel
 from renogy import RenogyChargeController
 
 log = logging.getLogger(__name__)
@@ -19,6 +19,7 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
         name: str = "renogy_mqtt",
         slave_address: int = 1,
         device_address: str = "/dev/ttyUSB0",
+        qos: QoSLevel = 0,
     ) -> None:
         """Initialize the MQTT client.
 
@@ -30,6 +31,8 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
                 controller. Defaults to 1.
             device_address (str): The serial port where the charge controller is
                 connected. Defaults to "/dev/ttyUSB0".
+            qos (QoSLevel): Quality of Service level for the MQTT data messages.
+                Defaults to 0 (at most once).
         """
         self.charge_controller = RenogyChargeController(
             slave_address=slave_address, device_address=device_address
@@ -52,6 +55,7 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
 
         super().__init__(broker, port, name, base_topic="solar")
         self.data_topic = "data"
+        self.qos: QoSLevel = qos
 
     def status_message(self, status: bool) -> dict:
         """Create a status message for the MQTT topic.
@@ -82,6 +86,7 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
             self.publish_json(
                 self.charge_controller.get_data(),
                 f"{self.name}/{self.data_topic}",
+                qos=self.qos,
             )
         except Exception as e:
             log.error(f"Error publishing data: {e}")
