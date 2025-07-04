@@ -5,6 +5,7 @@
 import logging
 import time
 
+from mqtt import QoSLevel
 from renogy_mqtt import RenogyChargeControllerMQTTClient
 from util import call_periodically
 
@@ -26,6 +27,7 @@ def main(
     slave_address: int,
     device_address: str,
     publish_frequency: int,
+    qos: QoSLevel,
 ) -> None:
     """Main function to start the renogy-mqtt application.
 
@@ -36,6 +38,7 @@ def main(
         slave_address (int): The slave address for the charge controller.
         device_address (str): The path to the serial port for communication.
         publish_frequency (int): Frequency in seconds to publish data.
+        qos (QoSLevel): Quality of Service level for the MQTT data messages.
     """
     try:
         with RenogyChargeControllerMQTTClient(
@@ -44,6 +47,7 @@ def main(
             name=name,
             slave_address=slave_address,
             device_address=device_address,
+            qos=qos,
         ) as mqtt_client:
             # wait for the client to connect
             while not mqtt_client.is_connected:
@@ -108,6 +112,13 @@ if __name__ == "__main__":
         default=60,
         help="Frequency in seconds to publish data (default: 60)",
     )
+    parser.add_argument(
+        "--qos",
+        type=int,
+        choices=[0, 1, 2],
+        default=1,
+        help="Quality of Service level for MQTT messages (default: 1)",
+    )
     main(
         broker=parser.parse_args().broker,
         port=parser.parse_args().port,
@@ -115,4 +126,5 @@ if __name__ == "__main__":
         slave_address=parser.parse_args().slave_address,
         device_address=parser.parse_args().device_address,
         publish_frequency=parser.parse_args().publish_frequency,
+        qos=parser.parse_args().qos,
     )
