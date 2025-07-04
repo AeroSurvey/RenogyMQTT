@@ -103,10 +103,19 @@ The frequency in seconds at which data will be published to the MQTT broker. Def
 
 Example: `--publish-frequency 30`
 
+#### quality of service
+
+The QoS (quality of service) level for the MQTT data messages.
+Defaults to 1.
+
+Options: 0, 1, 2
+
+Example: `--qos 1`
+
 #### Complete example
 
 ```bash
-uv run main.py --broker mqtt.example.com --port 1883 --name renogy-controller --slave-address 1 --device-address /dev/ttyUSB0 --publish-frequency 60
+uv run main.py --broker mqtt.example.com --port 1883 --name renogy-controller --slave-address 1 --device-address /dev/ttyUSB0 --publish-frequency 60 --qos 1
 ```
 
 ## Setup systemd service
