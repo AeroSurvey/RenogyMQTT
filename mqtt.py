@@ -195,15 +195,20 @@ class MQTTClient(ABC):
                 (True for online, False for offline).
         """
         payload = self.status_message(status)
+        qos = 1  # Use QoS level 1 for status messages
+        retain = True  # Retain the status message
         # Use the status topic directly without going through publish()
         try:
             result = self.client.publish(
-                self.status_topic, json.dumps(payload), qos=1, retain=True
+                self.status_topic, json.dumps(payload), qos=qos, retain=retain
             )
             if result.rc != mqtt.MQTT_ERR_SUCCESS:
                 log.error(f"Failed to publish status. Return code: {result.rc}")
             else:
-                log.info(f"Published status to {self.status_topic}: {payload}")
+                log.info(
+                    f"{qos=} | {retain=} | "
+                    f"Published status to {self.status_topic}: {payload}"
+                )
         except Exception as e:
             log.error(f"Error publishing status: {e}")
 
