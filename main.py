@@ -4,6 +4,7 @@
 
 import logging
 import time
+from typing import cast
 
 from mqtt import QoSLevel
 from renogy_mqtt import RenogyChargeControllerMQTTClient
@@ -128,13 +129,19 @@ if __name__ == "__main__":
         default=1000,
         help="Maximum size of the message queue (default: 1000)",
     )
+    # Parse arguments ONCE
+    args = parser.parse_args()
+
+    # Cast the QoS to the correct type
+    qos_level = cast(QoSLevel, args.qos)
+
     main(
-        broker=parser.parse_args().broker,
-        port=parser.parse_args().port,
-        name=parser.parse_args().name,
-        slave_address=parser.parse_args().slave_address,
-        device_address=parser.parse_args().device_address,
-        publish_frequency=parser.parse_args().publish_frequency,
-        qos=parser.parse_args().qos,
-        max_queue_size=parser.parse_args().max_queue_size,
+        broker=args.broker,
+        port=args.port,
+        name=args.name,
+        slave_address=args.slave_address,
+        device_address=args.device_address,
+        publish_frequency=args.publish_frequency,
+        qos=qos_level,
+        max_queue_size=args.max_queue_size,
     )
