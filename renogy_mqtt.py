@@ -20,6 +20,7 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
         slave_address: int = 1,
         device_address: str = "/dev/ttyUSB0",
         qos: QoSLevel = 0,
+        max_queue_size: int = 1000,
     ) -> None:
         """Initialize the MQTT client.
 
@@ -33,6 +34,9 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
                 connected. Defaults to "/dev/ttyUSB0".
             qos (QoSLevel): Quality of Service level for the MQTT data messages.
                 Defaults to 0 (at most once).
+            max_queue_size (int): Maximum size of the message queue. Defaults to
+                1000. If the queue is full, older messages will be discarded
+                to make room for new messages.
         """
         self.charge_controller = RenogyChargeController(
             slave_address=slave_address, device_address=device_address
@@ -53,7 +57,14 @@ class RenogyChargeControllerMQTTClient(MQTTClient):
         )
         self.controller_type = self.charge_controller.get_controller_type()
 
-        super().__init__(broker, port, name, base_topic="solar")
+        super().__init__(
+            broker,
+            port,
+            name,
+            base_topic="solar",
+            keepalive=60,
+            max_queue_size=max_queue_size,
+        )
         self.data_topic = "data"
         self.qos: QoSLevel = qos
 
