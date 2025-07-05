@@ -112,10 +112,17 @@ Options: 0, 1, 2
 
 Example: `--qos 1`
 
+#### max quene size
+
+The maximum size of the message quene can get during a disconnection with the broker.
+Defaults to 1000.
+
+Example `--max-quene-size 1000`
+
 #### Complete example
 
 ```bash
-uv run main.py --broker mqtt.example.com --port 1883 --name renogy-controller --slave-address 1 --device-address /dev/ttyUSB0 --publish-frequency 60 --qos 1
+uv run main.py --broker mqtt.example.com --port 1883 --name renogy-controller --slave-address 1 --device-address /dev/ttyUSB0 --publish-frequency 60 --qos 1 --max-quene-size 1000
 ```
 
 ## Setup systemd service
