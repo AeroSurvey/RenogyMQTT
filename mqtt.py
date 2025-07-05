@@ -4,13 +4,30 @@
 import json
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Literal
+from collections import deque
+from typing import Any, Literal, NamedTuple
 
 import paho.mqtt.client as mqtt
 
 log = logging.getLogger(__name__)
 
 QoSLevel = Literal[0, 1, 2]
+
+
+class QueuedMessage(NamedTuple):
+    """A named tuple to hold queued MQTT messages.
+
+    Attributes:
+        topic (str): The MQTT topic to publish to.
+        payload (str): The message payload to publish.
+        qos (QoSLevel): Quality of Service level for the message.
+        retain (bool): Whether to retain the message on the broker.
+    """
+
+    topic: str
+    payload: str
+    qos: QoSLevel
+    retain: bool
 
 
 class MQTTClient(ABC):
@@ -26,6 +43,7 @@ class MQTTClient(ABC):
         name: str = "mqtt_client",
         base_topic: str = "python",
         keepalive: int = 60,
+        max_queue_size: int = 1000,
     ) -> None:
         """Initialize the MQTT client.
 
@@ -38,6 +56,9 @@ class MQTTClient(ABC):
             keepalive (int): Keepalive interval in seconds. Defaults to 60.
                 Lower values make last will trigger faster but increase
                 network traffic.
+            max_queue_size (int): Maximum size of the message queue.
+                Defaults to 1000. If the queue is full, older messages will be
+                discarded to make room for new messages.
         """
         self.broker = broker
         self.port = port
@@ -48,6 +69,9 @@ class MQTTClient(ABC):
         self.status_topic = f"{self.topic}/status"
         self.client = mqtt.Client()
         self._connected: bool = False
+        self._message_queue: deque[QueuedMessage] = deque(
+            maxlen=max_queue_size
+        )  # Limit queue size
         self._setup_callbacks()
         self._set_last_will()
 
@@ -116,6 +140,7 @@ class MQTTClient(ABC):
                 )
                 # Send birth message only after successful connection
                 self.birth()
+                self._process_queued_messages()  # Send queued messages
             else:
                 self._connected = False
                 log.error(
@@ -230,11 +255,11 @@ class MQTTClient(ABC):
             retain (bool): Whether to retain the message on the broker.
                 Defaults to False (do not retain).
         """
+        full_topic = f"{self.base_topic}/{topic}"
+
         if not self._connected:
             log.error("Cannot publish message, not connected to MQTT broker.")
             return
-
-        full_topic = f"{self.base_topic}/{topic}"
 
         try:
             result = self.client.publish(
@@ -248,6 +273,27 @@ class MQTTClient(ABC):
                 log.info(f"Published message to {full_topic}: {payload}")
         except Exception as e:
             log.error(f"Error publishing message: {e}")
+
+    def _process_queued_messages(self) -> None:
+        """Send all queued messages after reconnection."""
+        while self._message_queue and self._connected:
+            msg = self._message_queue.popleft()
+            try:
+                result = self.client.publish(
+                    msg.topic, msg.payload, qos=msg.qos, retain=msg.retain
+                )
+                log.info(
+                    f"Sent queued message to {msg.topic}"
+                    f" with result code {result.rc}"
+                )
+            except Exception as e:
+                log.error(
+                    f"Result code: {result.rc} "
+                    f"Failed to send queued message: {e}"
+                )
+                # Re-queue the message
+                self._message_queue.appendleft(msg)
+                break
 
     def disconnect(self) -> None:
         """Disconnect from the MQTT broker."""
