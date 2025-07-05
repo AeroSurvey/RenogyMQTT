@@ -28,6 +28,7 @@ def main(
     device_address: str,
     publish_frequency: int,
     qos: QoSLevel,
+    max_queue_size: int,
 ) -> None:
     """Main function to start the renogy-mqtt application.
 
@@ -39,6 +40,7 @@ def main(
         device_address (str): The path to the serial port for communication.
         publish_frequency (int): Frequency in seconds to publish data.
         qos (QoSLevel): Quality of Service level for the MQTT data messages.
+        max_queue_size (int): Maximum size of the message queue.
     """
     try:
         with RenogyChargeControllerMQTTClient(
@@ -48,6 +50,7 @@ def main(
             slave_address=slave_address,
             device_address=device_address,
             qos=qos,
+            max_queue_size=max_queue_size,
         ) as mqtt_client:
             # wait for the client to connect
             while not mqtt_client.is_connected:
@@ -119,6 +122,12 @@ if __name__ == "__main__":
         default=1,
         help="Quality of Service level for MQTT messages (default: 1)",
     )
+    parser.add_argument(
+        "--max-queue-size",
+        type=int,
+        default=1000,
+        help="Maximum size of the message queue (default: 1000)",
+    )
     main(
         broker=parser.parse_args().broker,
         port=parser.parse_args().port,
@@ -127,4 +136,5 @@ if __name__ == "__main__":
         device_address=parser.parse_args().device_address,
         publish_frequency=parser.parse_args().publish_frequency,
         qos=parser.parse_args().qos,
+        max_queue_size=parser.parse_args().max_queue_size,
     )
