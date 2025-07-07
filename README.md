@@ -47,6 +47,8 @@ uv sync
 
 ## Finding the USB parameters
 
+This is used for debuging purposes. The main script will automatically detect and configure the USB device address and the MODBUS slave address.
+
 Running the `find_USB_parameters.py` script will return a dictionary containing the device address and the modbus slave address.
 
 Run the script (with verbose logging messages)
@@ -85,18 +87,6 @@ The name identifier for the MQTT client. This should be unique for each client c
 
 Example: `--name renogy-solar-controller`
 
-#### slave address
-
-The Modbus slave address for the charge controller. This can be found using the `find_USB_parameters.py` script. Defaults to 1 if not specified.
-
-Example: `--slave-address 1`
-
-#### device address
-
-The path to the serial port for communication with the charge controller. This can be found using the `find_USB_parameters.py` script.
-
-Example: `--device-address /dev/ttyUSB0`
-
 #### publish frequency
 
 The frequency in seconds at which data will be published to the MQTT broker. Defaults to 60 seconds if not specified.
@@ -122,7 +112,7 @@ Example `--max-queue-size 1000`
 #### Complete example
 
 ```bash
-uv run main.py --broker mqtt.example.com --port 1883 --name renogy-controller --slave-address 1 --device-address /dev/ttyUSB0 --publish-frequency 60 --qos 1 --max-queue-size 1000
+uv run main.py --broker mqtt.example.com --port 1883 --name renogy-controller --publish-frequency 60 --qos 1 --max-queue-size 1000
 ```
 
 ## Setup systemd service
