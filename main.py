@@ -6,6 +6,7 @@ import logging
 import time
 from typing import cast
 
+from find_USB_parameters import find_modbus_parameters
 from mqtt import QoSLevel
 from renogy_mqtt import RenogyChargeControllerMQTTClient
 from util import call_periodically
@@ -25,8 +26,6 @@ def main(
     broker: str,
     port: int,
     name: str,
-    slave_address: int,
-    device_address: str,
     publish_frequency: int,
     qos: QoSLevel,
     max_queue_size: int,
@@ -43,6 +42,11 @@ def main(
         qos (QoSLevel): Quality of Service level for the MQTT data messages.
         max_queue_size (int): Maximum size of the message queue.
     """
+    log.info("Auto-Detecting the USB and MODBUS addresses...")
+    modbus_params = find_modbus_parameters(verbose=True)
+    device_address = modbus_params["device"]
+    slave_address = modbus_params["slave_address"]
+
     try:
         with RenogyChargeControllerMQTTClient(
             broker=broker,
@@ -99,18 +103,6 @@ if __name__ == "__main__":
         help="Name of the MQTT client",
     )
     parser.add_argument(
-        "--slave-address",
-        type=int,
-        default=1,
-        help="Slave address for the charge controller (default: 1)",
-    )
-    parser.add_argument(
-        "--device-address",
-        type=str,
-        required=True,
-        help="Path to the serial port for communication",
-    )
-    parser.add_argument(
         "--publish-frequency",
         type=float,
         default=60,
@@ -139,8 +131,6 @@ if __name__ == "__main__":
         broker=args.broker,
         port=args.port,
         name=args.name,
-        slave_address=args.slave_address,
-        device_address=args.device_address,
         publish_frequency=args.publish_frequency,
         qos=qos_level,
         max_queue_size=args.max_queue_size,
