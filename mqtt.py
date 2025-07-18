@@ -160,8 +160,12 @@ class MQTTClient(ABC):
                 log.info(f"Disconnected from MQTT broker. Return code: {rc}")
             else:
                 log.warning(
-                    "Unexpected disconnection from MQTT broker. ",
-                    f"Return code: {rc}",
+                    "".join(
+                        [
+                            "Unexpected disconnection from MQTT broker. ",
+                            f"Return code: {rc}",
+                        ]
+                    )
                 )
 
         self.client.on_connect = on_connect
