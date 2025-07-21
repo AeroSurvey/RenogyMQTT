@@ -27,7 +27,7 @@ def _scan_addresses(
     addresses = []
     for address in range(0x01, 0xFF):
         if verbose:
-            logging.info(f"Testing slave address: {address}")
+            logging.debug(f"Testing slave address: {address}")
         instrument.address = address
         for register, length in registers_to_try:
             try:
@@ -54,7 +54,7 @@ def find_slave_address(portname: str, verbose: bool = False) -> int:
           are found.
     """
     if verbose:
-        logging.info(f"Searching for slave address on port: {portname}")
+        logging.debug(f"Searching for slave address on port: {portname}")
 
     instrument = _setup_instrument(portname)
     registers_to_try = [(0x1402, 8), (0x000C, 16)]
@@ -71,7 +71,7 @@ def find_slave_address(portname: str, verbose: bool = False) -> int:
         )
 
     if verbose:
-        logging.info(f"Found slave address: {addresses[0]}")
+        logging.debug(f"Found slave address: {addresses[0]}")
     return addresses[0]
 
 
@@ -91,7 +91,7 @@ def _try_read_register(
     """
     try:
         result = instrument.read_string(register, length)
-        logging.info(f"Successfully read register {register}: {result}")
+        logging.debug(f"Successfully read register {register}: {result}")
         return True
     except (minimalmodbus.ModbusException, UnicodeDecodeError) as e:
         logging.debug(f"Error reading register {register}: {e}")
@@ -116,7 +116,7 @@ def find_usb_device(verbose: bool = False) -> str:
     import serial.tools.list_ports
 
     if verbose:
-        logging.info("Searching for USB device...")
+        logging.debug("Searching for USB device...")
     # List all serial ports
     ports = serial.tools.list_ports.comports()
 
@@ -133,7 +133,7 @@ def find_usb_device(verbose: bool = False) -> str:
         )
 
     if verbose:
-        logging.info(f"Found USB device: {device[0]}")
+        logging.debug(f"Found USB device: {device[0]}")
     return device[0]
 
 
@@ -149,7 +149,7 @@ def find_modbus_parameters(verbose: bool = False) -> dict:
     if verbose:
         device = find_usb_device(verbose)
         slave_address = find_slave_address(device, verbose)
-        logging.info("\n")
+        logging.debug("\n")
     else:
         device = find_usb_device()
         slave_address = find_slave_address(device)
@@ -160,7 +160,7 @@ def find_modbus_parameters(verbose: bool = False) -> dict:
 if __name__ == "__main__":
     import argparse
 
-    logging.basicConfig(level=logging.INFO, format="")
+    logging.basicConfig(level=logging.DEBUG, format="")
 
     parser = argparse.ArgumentParser(
         description="Find USB parameters for a Renogy USB device."
@@ -175,8 +175,8 @@ if __name__ == "__main__":
     verbose = parser.parse_args().verbose
 
     if verbose:
-        logging.info("Searching for USB parameters...")
-        logging.info(find_modbus_parameters(verbose))
+        logging.debug("Searching for USB parameters...")
+        logging.debug(find_modbus_parameters(verbose))
 
     else:
-        logging.info(find_modbus_parameters())
+        logging.debug(find_modbus_parameters())
