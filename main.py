@@ -13,7 +13,7 @@ from util import call_periodically
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.WARNING,
     format=(
         "%(asctime)s - %(levelname)s - %(module)s.py:%(lineno)d - %(message)s"
     ),
@@ -42,7 +42,7 @@ def main(
         qos (QoSLevel): Quality of Service level for the MQTT data messages.
         max_queue_size (int): Maximum size of the message queue.
     """
-    log.info("Auto-Detecting the USB and MODBUS addresses...")
+    log.debug("Auto-Detecting the USB and MODBUS addresses...")
     modbus_params = find_modbus_parameters(verbose=True)
     device_address = modbus_params["device"]
     slave_address = modbus_params["slave_address"]
