@@ -1,9 +1,10 @@
 """Additional methods for Renogy charge controller."""
 
 import logging
-from datetime import datetime
+import os
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
-import tzlocal
 from renogymodbus import RenogyChargeController as RCC
 
 log = logging.getLogger(__name__)
@@ -24,6 +25,16 @@ class RenogyChargeController(RCC):
                 controller. Defaults to 1.
         """
         super().__init__(portname=device_address, slaveaddress=slave_address)
+        try:
+            tz_path = os.readlink("/etc/localtime").split("/")[-2:]
+            tz_string = "/".join(tz_path)
+            self.tz = ZoneInfo(tz_string)
+        except Exception as e:
+            log.warning(
+                f"Could not determine local timezone from /etc/localtime: {e}. "
+                "Defaulting to UTC."
+            )
+            self.tz = timezone.utc
 
     # Mapping of register names to their addresses and lengths.
     registers: dict[str, tuple[int, int]] = {
@@ -157,7 +168,7 @@ class RenogyChargeController(RCC):
                 controller.
         """
         return {
-            "timestamp": datetime.now(tzlocal.get_localzone()).isoformat(),
+            "timestamp": datetime.now(self.tz).isoformat(),
             "solar_voltage": self.get_solar_voltage(),
             "solar_current": self.get_solar_current(),
             "solar_power": self.get_solar_power(),
