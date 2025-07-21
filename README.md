@@ -154,3 +154,33 @@ View logs
 ```bash
 sudo journalctl -u RenogyMQTT.service -f
 ```
+
+## Setup syslog
+
+Install rsyslog
+
+```bash
+sudo apt install rsyslog netcat-openbsd
+```
+
+Modify `renogymqtt.conf` with your syslog server IP and port:
+
+```bash
+sudo nano renogymqtt.conf
+```
+
+```
+:programname, isequal, "RenogyMQTT" @@<serverIP>:<port>
+```
+
+Copy the configuration to `/etc/rsyslog.d/renogymqtt.conf`
+
+```bash
+sudo cp renogymqtt.conf /etc/rsyslog.d/renogymqtt.conf
+```
+
+Restart syslog to apply changes
+
+```bash
+sudo systemctl restart rsyslog
+```
