@@ -13,7 +13,7 @@ from util import call_periodically
 
 # Configure logging
 logging.basicConfig(
-    level=logging.WARNING,
+    level=logging.INFO,
     format=(
         "%(asctime)s - %(levelname)s - %(module)s.py:%(lineno)d - %(message)s"
     ),
